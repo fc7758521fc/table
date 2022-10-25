@@ -1,0 +1,16 @@
+{
+  "name": "ball",
+  "uuid": "b396886b-aca0-40a6-8fce-4d069d39b2fd",
+  "version": "3.6.1",
+  "creator": {
+    "version": "3.6.1"
+  },
+  "dependencies": {
+    "protobufjs": "^7.1.2"
+  },
+  "scripts": {
+    "build-proto": "npm run build-proto:pbjs && npm run build-proto:pbts",
+    "build-proto:pbjs": "pbjs --target static-module --wrap wrap-pbjs.js --out assets/script/protocol/dr2_comm.js Proto/dr2_comm.proto",
+    "build-proto:pbts": "pbts --main --out assets/script/protocol/dr2_comm.d.ts assets/script/protocol/dr2_comm.js && node ./wrap-pbts"
+  }
+}
