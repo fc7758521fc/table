@@ -22,13 +22,6 @@ export class Game extends Component {
     obstaclePrefab: Prefab = null!;
 
     start() {
-        console.log("asdasdasd")
-        const data = Ipb_player.AwesomeMessage.encode({name :'fc', age:'18'}).finish();
-        console.log("encode", data)
-        
-        const message = Ipb_player.AwesomeMessage.decode(data);
-        console.log("decode", message)
-
         this.score = 0;
 
         input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
