@@ -1,4 +1,4 @@
-import { _decorator, Component, Node ,Prefab, input, Input, Camera, Vec3, Canvas, Tween, RigidBody, math, SphereCollider, ICollisionEvent, Label} from 'cc';
+import { _decorator, Component, Node ,Prefab, input, Input, Camera, Vec3, Canvas, Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame} from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('Game')
@@ -9,14 +9,14 @@ export class Game extends Component {
     @property(Prefab)
     ballPrefab: Prefab = null!;
 
-    @property(Prefab)
-    testPrefab: Prefab = null!;
-
     @property(Camera)
     camera: Camera = null!;
 
     @property(Node)
     muzzle: Node = null!;
+
+    @property(Node)
+    bg: Node = null!;
 
     @property(Prefab)
     obstaclePrefab: Prefab = null!;
@@ -24,9 +24,13 @@ export class Game extends Component {
     start() {
         this.score = 0;
 
-        input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        input.on(Input.EventType.TOUCH_START, this.onMouseUp, this);
 
         this.initSchedule()
+
+        resources.load("test_res/uibg_smith/spriteFrame", SpriteFrame, (err, spriteFrame) => {
+            this.bg.getComponent(Sprite).spriteFrame = spriteFrame
+        });
     }
 
     initSchedule() {
