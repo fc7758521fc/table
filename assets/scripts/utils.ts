@@ -1,8 +1,15 @@
-import { _decorator, Component, Node, Prefab} from 'cc';
+import { _decorator, Component, Node, Prefab, director, game} from 'cc';
 const { ccclass, property } = _decorator;
 
-@ccclass('Utils')
-export class Utils {
-    
+@ccclass('utils')
+export class utils {
+    static gamePause() {
+        director.pause()
+    }
+
+    static gameStart() {
+        director.loadScene("main")
+        director.resume()
+    }
 }
 
