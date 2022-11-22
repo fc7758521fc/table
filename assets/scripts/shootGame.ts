@@ -1,15 +1,14 @@
+//射击小球主逻辑
 import { _decorator, Component, Node ,Prefab, input, Input, MeshRenderer,Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset} from 'cc';
 const { ccclass, property } = _decorator;
 
-import { Ball } from './Ball'
-import { utils } from './utils'
-import { BallPool } from './BallPool'
+import { gFunc } from './global/gFunc'
+import { utils } from './global/utils'
+import { objectPool } from './global/objectPool'
 import { UIManager } from './UIManager'
-// import { selectGameView } from './ui/selectGameView'
 
-
-@ccclass('Game')
-export class Game extends Component {
+@ccclass('shootGame')
+export class shootGame extends Component {
     @property(Prefab)
     ballPrefab: Prefab = null!;
 
@@ -38,6 +37,7 @@ export class Game extends Component {
 
         input.on(Input.EventType.TOUCH_START, this.onMouseUp, this);
 
+        UIManager.setNodeParent(this.node)
         // this.initBarrier();
 
         // this.initSchedule()
@@ -240,15 +240,15 @@ export class Game extends Component {
 
     //获取动态下载资源
     getPrefabResource(url: string, type) {
-        let resource =  Ball.loadResSync(url, type) as type;
+        let resource =  gFunc.loadResSync(url, type) as type;
         return resource;
     }
 
     //生成小球
     createPrefab(res) {
         let prefab = null;
-        if (BallPool.enemyPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
-            prefab = BallPool.enemyPool.get();
+        if (objectPool.enemyPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
+            prefab = objectPool.enemyPool.get();
         } else { // 如果没有空闲对象，也就是对象池中备用对象不够时，我们就用 cc.instantiate 重新创建
             prefab = cc.instantiate(res);
         }
@@ -257,15 +257,15 @@ export class Game extends Component {
 
     //初始化对象池
     async initBallPool() {
-        let resource = await Ball.loadResSync("package/prefab/fight/ball", cc.Prefab) as Prefab; 
-        BallPool.initPool(resource)
+        let resource = await gFunc.loadResSync("package/prefab/fight/ball", cc.Prefab) as Prefab; 
+        objectPool.initPool(resource)
     }
 
     //小球数量模型
     async initBallModel() {
        for (let i = 0; i < 9 ; i++) {
             let posy = 300 - ((i+1) - 1) * 30
-            let resource = await Ball.loadResSync("test_res/voidsummon_ball1/spriteFrame", SpriteFrame) as SpriteFrame; 
+            let resource = await gFunc.loadResSync("test_res/voidsummon_ball1/spriteFrame", SpriteFrame) as SpriteFrame; 
             let newNode = new Node();
             let sprite = newNode.addComponent(Sprite);
             newNode.getComponent(Sprite).spriteFrame = resource
@@ -345,17 +345,14 @@ export class Game extends Component {
     //目前小游戏计划（射击小球， 弹弹球， 俄罗斯方块）
     async moreGame() {
         let ui_params = []
-        ui_params.parent = this.node
-        let res = await Ball.loadResSync("package/prefab/common/Board", Prefab)
+        let res = await gFunc.loadResSync("package/prefab/common/Board", Prefab)
         let commonBoard = cc.instantiate(res);
-        ui_params.bg = commonBoard
+        ui_params.rootNode = commonBoard
 
         UIManager.showDefaultConfigUI(ui_params)
     }
 
     startGame() {
-        console.log("+++++++++++++++")
-
         let start = cc.find("Canvas/startPanel")
         start.active = false
 

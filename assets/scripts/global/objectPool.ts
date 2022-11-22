@@ -1,8 +1,8 @@
 import { _decorator, Component, Node, Prefab, NodePool} from 'cc';
 const { ccclass, property } = _decorator;
 
-@ccclass('BallPool')
-export class BallPool{
+@ccclass('objectPool')
+export class objectPool{
     onLoad() {
         
     }

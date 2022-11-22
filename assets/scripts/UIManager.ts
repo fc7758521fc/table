@@ -5,22 +5,24 @@ const { ccclass, property } = _decorator;
 export class UIManager extends Component{
     static onLoad(){
         this.ui_stack = []
+        this.main_node = new Node();
+        this.pop_node = new Node();
+    }
+
+    static setNodeParent(scene) {
+        this.onLoad()
+        this.main_node.parent = scene
+        this.pop_node.parent = scene
     }
 
     static showDefaultConfigUI(params) {
-        this.onLoad()
         this.showUI(params)
     }
 
     static showUI(params){
-        let current_node = new Node();
-        current_node.parent = params.parent
-
-        let bg = cc.instantiate(params.bg);
-        bg.parent = current_node
-
-        console.log("this.ui_stack", this.ui_stack)
-        this.ui_stack.push(current_node)
+        let root = cc.instantiate(params.rootNode);
+        root.parent = this.main_node
+        this.ui_stack.push(root)
     }
 
     static close() {
@@ -31,5 +33,11 @@ export class UIManager extends Component{
             return 
         }
     }
+
+    static addToast(node) {
+        node.parent = this.pop_node
+    }
+
+
 }
 
