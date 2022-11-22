@@ -3,11 +3,13 @@ const { ccclass, property } = _decorator;
 
 @ccclass('utils')
 export class utils {
-    static gamePause() {
+    //游戏暂停
+    public static gamePause() {
         director.pause()
     }
 
-    static gameStart() {
+    //游戏开始
+    public static gameStart() {
         director.loadScene("main")
         director.resume()
     }

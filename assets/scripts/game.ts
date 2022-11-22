@@ -1,9 +1,12 @@
-import { _decorator, Component, Node ,Prefab, input, Input, Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset} from 'cc';
+import { _decorator, Component, Node ,Prefab, input, Input, MeshRenderer,Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset} from 'cc';
 const { ccclass, property } = _decorator;
 
 import { Ball } from './Ball'
 import { utils } from './utils'
 import { BallPool } from './BallPool'
+import { UIManager } from './UIManager'
+// import { selectGameView } from './ui/selectGameView'
+
 
 @ccclass('Game')
 export class Game extends Component {
@@ -22,6 +25,9 @@ export class Game extends Component {
     @property(Node)
     obstaclePrefab: Node = null!;
 
+    @property(Prefab)
+    commonBoard: Node = null!;
+
     modeArray:Array = [];
     modeIndex = 0
 
@@ -32,13 +38,13 @@ export class Game extends Component {
 
         input.on(Input.EventType.TOUCH_START, this.onMouseUp, this);
 
-        this.initBarrier();
+        // this.initBarrier();
 
-        this.initSchedule()
+        // this.initSchedule()
 
-        this.initBallPool()
+        // this.initBallPool()
 
-        this.initBallModel()
+        // this.initBallModel()
 
         // let ball = cc.instantiate(res);
         // ball.parent = this.node.parent;
@@ -73,8 +79,9 @@ export class Game extends Component {
     initSchedule() {
         this.schedule(function() {
             // 这里的 this 指向 component
-            this.initBarrier()
             this.barrierUp()
+
+            this.initBarrier()
         }, 5);
     }
 
@@ -82,6 +89,7 @@ export class Game extends Component {
     initBarrier() {
          for (let i = 0; i < 3; i++) {
             let barrier = cc.instantiate(this.obstaclePrefab)as Node;
+            barrier.clickNums = 1
             barrier.active = true
             barrier.parent = this.node.parent;
             barrier.setPosition(new Vec3(math.randomRangeInt(-5, 5), 2, 0))
@@ -113,20 +121,20 @@ export class Game extends Component {
         
         let tan = tan_x/tan_y;
         let radu= tan / 3.1415926 * 180
-        let end_radu = -90
+        // let end_radu = -90
 
         if (radu > 45) {
             radu = 45
         }
         let power = 0
         if (click_x > muzzle_x) {
-            end_radu = - 90 + radu
+            // end_radu = - 90 + radu
             power = radu
         }else{
-            end_radu = - 90 - radu
+            // end_radu = - 90 - radu
             power = -radu
         }
-        this.muzzle.setRotationFromEuler(0,0, end_radu)
+        // this.muzzle.setRotationFromEuler(0,0, end_radu)
         
         // 以秒为单位的时间间隔
         let interval = 0.2;
@@ -142,15 +150,30 @@ export class Game extends Component {
             ball.parent = this.node.parent;
             
             let sceenPosLocal = event.getLocation();
+
+            console.log(sceenPosLocal)
+            console.log(this.muzzle.getPosition())
             let c_z = this.camera.node.worldPosition.z / 1000;
             let worldPoint = this.camera.screenToWorld(new Vec3(sceenPosLocal.x, sceenPosLocal.y ,c_z));
     
-            ball.setPosition(new Vec3(worldPoint.x, 22, 0))
+            ball.setPosition(new Vec3(0.5, 22, 0))
 
             let rigid = ball.getChildByName("RootNode").getChildByName("ballball"); //如果层级较深的话，多级查找子节点
             let rb = rigid.getComponent(RigidBody);
-            rb.applyImpulse(new Vec3(power, -10, 0));
-            rb.setLinearVelocity(new math.Vec3(worldPoint.x, -20, 0));
+            // rb.applyImpulse(new Vec3(power, -10, 0));
+            rb.useGravity = false
+            // rb.setLinearVelocity(new math.Vec3(worldPoint.x, -20, 0));
+
+            const tw1 = new Tween(ball)
+            .to(0.5, { position: new Vec3(worldPoint.x, worldPoint.y, 0) })
+            .call(() => {
+                rb.applyImpulse(new Vec3(power, -10, 0));
+                rb.setLinearVelocity(new math.Vec3(worldPoint.x, -20, 0));
+                // rb.setLinearVelocity(new Vec3(worldPoint.x, -10, 0));
+                rb.useGravity = true
+            })
+            .start();
+
             rigid.pre = ball
 
             let collider = rigid.getComponent(SphereCollider);
@@ -165,11 +188,21 @@ export class Game extends Component {
     private onCollision (event: ICollisionEvent) {
         //如果和小球碰撞
         if (event.otherCollider.node.name == "Cube") {
-            event.otherCollider.node.destroy();
-            // console.log("event.otherCollider", event.otherCollider.node.parent)
-            // console.log("this.barrierArray", this.barrierArray[0])
-            this.addScore()
-            this.setBarrierrData(event.otherCollider.node.parent)
+            // console.log("event.otherCollider.node.parent", event.otherCollider.node)
+
+            let click_index = event.otherCollider.node.parent.clickNums
+            event.otherCollider.node.parent.clickNums = event.otherCollider.node.parent.clickNums - 1
+
+            let rigid = event.selfCollider.node
+            let rb = rigid.getComponent(RigidBody);
+            rb.useGravity = true
+
+            if (event.otherCollider.node.parent.clickNums <= 0 ) {
+                event.otherCollider.node.destroy();
+            
+                this.addScore()
+                this.setBarrierrData(event.otherCollider.node.parent)
+            }
         }
 
         if (event.otherCollider.node.name == "Plane_box1") {
@@ -184,6 +217,7 @@ export class Game extends Component {
             let rb = rigid.getComponent(RigidBody);
             rb.setLinearVelocity(new math.Vec3(0, 0, 0));
             rb.applyImpulse(new Vec3(0, 30, 0));
+            rb.useGravity = true
         }
         
         //如果小球到达底板,放入对象池里面
@@ -285,6 +319,7 @@ export class Game extends Component {
         }
     }
 
+    //游戏结束
     gameOver() {
         let mask = cc.find("Canvas/over")
         mask.active = true
@@ -296,10 +331,41 @@ export class Game extends Component {
         utils.gamePause()
     }
 
+    //重新开始游戏
     reStartGame() {
         let mask = cc.find("Canvas/over")
         mask.active = false
         utils.gameStart()
+
+        let start = cc.find("Canvas/start")
+        start.active = true
+    }
+
+    //更多游戏入口(在里面写入多种小游戏，成为一个合集)
+    //目前小游戏计划（射击小球， 弹弹球， 俄罗斯方块）
+    async moreGame() {
+        let ui_params = []
+        ui_params.parent = this.node
+        let res = await Ball.loadResSync("package/prefab/common/Board", Prefab)
+        let commonBoard = cc.instantiate(res);
+        ui_params.bg = commonBoard
+
+        UIManager.showDefaultConfigUI(ui_params)
+    }
+
+    startGame() {
+        console.log("+++++++++++++++")
+
+        let start = cc.find("Canvas/startPanel")
+        start.active = false
+
+        this.initBarrier();
+
+        this.initSchedule()
+
+        this.initBallPool()
+
+        this.initBallModel()
     }
 }
 
