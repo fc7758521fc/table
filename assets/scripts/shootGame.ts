@@ -1,11 +1,13 @@
 //射击小球主逻辑
-import { _decorator, Component, Node ,Prefab, input, Input, MeshRenderer,Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset} from 'cc';
+import { _decorator, Component,EventTarget, Node ,Prefab, input, Input, MeshRenderer,Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset} from 'cc';
 const { ccclass, property } = _decorator;
 
 import { gFunc } from './global/gFunc'
 import { utils } from './global/utils'
 import { objectPool } from './global/objectPool'
 import { UIManager } from './UIManager'
+cc.myEvent = new EventTarget();
+import { EventMessage } from './global/eventManager'
 
 @ccclass('shootGame')
 export class shootGame extends Component {
@@ -24,9 +26,6 @@ export class shootGame extends Component {
     @property(Node)
     obstaclePrefab: Node = null!;
 
-    @property(Prefab)
-    commonBoard: Node = null!;
-
     modeArray:Array = [];
     modeIndex = 0
 
@@ -38,30 +37,20 @@ export class shootGame extends Component {
         input.on(Input.EventType.TOUCH_START, this.onMouseUp, this);
 
         UIManager.setNodeParent(this.node)
-        // this.initBarrier();
 
-        // this.initSchedule()
+        this.initStartView();
 
-        // this.initBallPool()
+        cc.myEvent.on(EventMessage.GAME_ENTER, (arg1, arg2, arg3) => {
+            this.startGame()
+        });
 
-        // this.initBallModel()
+        cc.myEvent.on(EventMessage.GAME_MORE, (arg1, arg2, arg3) => {
+            this.moreGame()
+        });
 
-        // let ball = cc.instantiate(res);
-        // ball.parent = this.node.parent;
-        // ball.setPosition(new Vec3(10, 22, 0))
-
-        // let res = await Ball.createBall("package/prefab/fight/ball", Prefab)
-        // let ball = cc.instantiate(res)as Node;
-
-        // let prefab = resources.load("package/prefab/fight/ball/prefab", Prefab, (err, prefab) => {
-        //     console.log("asdasdasdasdasdasdasdasd", err)
-        // });
-
-        // resources.load("test_res/uibg_smith/spriteFrame", SpriteFrame, (err, spriteFrame) => {
-        //     this.bg.getComponent(Sprite).spriteFrame = spriteFrame
-
-        //     console.log("sprite", this.bg.getComponent(Sprite).spriteFrame)
-        // });
+        cc.myEvent.on(EventMessage.GAME_OVER, (arg1, arg2, arg3) => {
+            this.reStartGame()
+        });
 
         // let remoteUrl = "http://127.0.0.1/uibg_sealland.png";
         // let that = this
@@ -75,14 +64,25 @@ export class shootGame extends Component {
         // });
     }
 
+    //开始游戏弹窗
+    async initStartView() {
+        utils.gameStart()
+
+        let ui_params = []
+        let res = await gFunc.loadResSync("package/prefab/common/startPanel", Prefab)
+        let commonBoard = cc.instantiate(res);
+        ui_params.rootNode = commonBoard
+
+        UIManager.showDefaultConfigUI(ui_params)
+    }
+
     //调度器生成
     initSchedule() {
-        this.schedule(function() {
-            // 这里的 this 指向 component
+        this.schedul = function () {
             this.barrierUp()
-
             this.initBarrier()
-        }, 5);
+        }
+        this.schedule(this.schedul, 1);
     }
 
     //障碍物生成
@@ -109,7 +109,7 @@ export class shootGame extends Component {
             return 
         }
 
-        //将发射点设置到箭头2.0
+        //将发射点设置到箭头
         let sceenPos = event.getUILocation();
         let click_x = sceenPos.x
         let click_y = sceenPos.y
@@ -121,20 +121,20 @@ export class shootGame extends Component {
         
         let tan = tan_x/tan_y;
         let radu= tan / 3.1415926 * 180
-        // let end_radu = -90
+        let end_radu = -90
 
         if (radu > 45) {
             radu = 45
         }
         let power = 0
         if (click_x > muzzle_x) {
-            // end_radu = - 90 + radu
+            end_radu = - 90 + radu
             power = radu
         }else{
-            // end_radu = - 90 - radu
+            end_radu = - 90 - radu
             power = -radu
         }
-        // this.muzzle.setRotationFromEuler(0,0, end_radu)
+        this.muzzle.setRotationFromEuler(0,0, end_radu)
         
         // 以秒为单位的时间间隔
         let interval = 0.2;
@@ -151,8 +151,6 @@ export class shootGame extends Component {
             
             let sceenPosLocal = event.getLocation();
 
-            console.log(sceenPosLocal)
-            console.log(this.muzzle.getPosition())
             let c_z = this.camera.node.worldPosition.z / 1000;
             let worldPoint = this.camera.screenToWorld(new Vec3(sceenPosLocal.x, sceenPosLocal.y ,c_z));
     
@@ -321,24 +319,31 @@ export class shootGame extends Component {
 
     //游戏结束
     gameOver() {
-        let mask = cc.find("Canvas/over")
-        mask.active = true
+        this.initGameOverView()
+        
         for(let i = 0; i < this.barrierArray.length ; i++) {
             let barrier = this.barrierArray[i];
             barrier.active = false
         }
 
-        utils.gamePause()
+        this.cleanAll()
     }
 
-    //重新开始游戏
+    // //重新开始游戏
     reStartGame() {
-        let mask = cc.find("Canvas/over")
-        mask.active = false
-        utils.gameStart()
+        this.initStartView()
+    }
 
-        let start = cc.find("Canvas/start")
-        start.active = true
+    //重新开始清除数据
+    cleanAll() {
+        for(let i = 0; i < this.barrierArray.length ; i++) {
+            let barrier = this.barrierArray[i];
+            barrier.destroy()
+        }
+
+        this.barrierArray = []
+        this.unschedule(this.schedul);
+        this.schedul = null
     }
 
     //更多游戏入口(在里面写入多种小游戏，成为一个合集)
@@ -352,10 +357,8 @@ export class shootGame extends Component {
         UIManager.showDefaultConfigUI(ui_params)
     }
 
+    //开始游戏
     startGame() {
-        let start = cc.find("Canvas/startPanel")
-        start.active = false
-
         this.initBarrier();
 
         this.initSchedule()
@@ -363,6 +366,16 @@ export class shootGame extends Component {
         this.initBallPool()
 
         this.initBallModel()
+    }
+
+    //游戏结束
+    async initGameOverView() {
+        let ui_params = []
+        let res = await gFunc.loadResSync("package/prefab/common/over", Prefab)
+        let commonBoard = cc.instantiate(res);
+        ui_params.rootNode = commonBoard
+
+        UIManager.showDefaultConfigUI(ui_params)
     }
 }
 

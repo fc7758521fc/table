@@ -10,7 +10,7 @@ export class utils {
 
     //游戏开始
     public static gameStart() {
-        director.loadScene("main")
+        // director.loadScene("main")
         director.resume()
     }
 }

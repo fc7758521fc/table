@@ -23,15 +23,22 @@ export class UIManager extends Component{
         let root = cc.instantiate(params.rootNode);
         root.parent = this.main_node
         this.ui_stack.push(root)
+
+        console.log("当前界面数量",this.ui_stack.length)
+        console.log("当前界面数据", this.ui_stack)
     }
 
     static close() {
-        for (let key in this.ui_stack) {
-            let node = this.ui_stack[key]
+        //每次删除最上面的界面
+        let topIndex = this.ui_stack.length - 1
+        if (this.ui_stack[topIndex]) {
+            let node = this.ui_stack[topIndex]
             node.destroy()
-            this.ui_stack.splice(0, 1)
-            return 
+            this.ui_stack.splice(topIndex, 1)
         }
+
+        console.log("当前界面数量",this.ui_stack.length)
+        console.log("当前界面数据", this.ui_stack)
     }
 
     static addToast(node) {

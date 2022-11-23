@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, Label, UITransform, Button} from 'cc';
+import { _decorator, Component, Node, Prefab, Label, UITransform, Button, director} from 'cc';
 import { UIManager } from '../UIManager';
 import { GlobalEnum } from '../global/GlobalEnum'
 const { ccclass, property } = _decorator;
@@ -36,9 +36,9 @@ export class selectGameView extends UIManager{
         if (sender.node.index == 1) { //这里需要想一下，处于当前时，直接关闭界面
             UIManager.close()
         }else if (sender.node.index == 2) {
-            gFunc.showToast("我草泥马")
+            
         }else if (sender.node.index == 3) {
-            gFunc.showToast("我草泥马")
+            gFunc.showToast("敬请期待")
         }
     }
 
