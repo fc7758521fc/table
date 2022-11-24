@@ -32,11 +32,15 @@ export class selectGameView extends UIManager{
         }
     }
 
-    callback(sender) {
+    async callback(sender) {
         if (sender.node.index == 1) { //这里需要想一下，处于当前时，直接关闭界面
             UIManager.close()
         }else if (sender.node.index == 2) {
-            
+            let ui_params = []
+            let res = await gFunc.loadResSync("package/prefab/ui/russiaCube", Prefab)
+            let commonBoard = cc.instantiate(res);
+            ui_params.rootNode = commonBoard
+            UIManager.showDefaultConfigUI(ui_params)
         }else if (sender.node.index == 3) {
             gFunc.showToast("敬请期待")
         }
