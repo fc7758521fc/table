@@ -156,11 +156,10 @@ export class russiaGameCubeTools extends Component{
             this.cubeMode.push(squareNode)
         }
 
-        console.log("初始化的方块", this.cubeMode)
+        // console.log("初始化的方块", this.cubeMode)
     }
 
     static getCube(random){
-        console.log("randomrandomrandomrandomrandom", random)
         return this.cubeMode[random]
     }
 

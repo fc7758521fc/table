@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, Label, input, Size,Input,Vec3,UITransform, Button, director,Sprite,EventTarget,SpriteFrame, math} from 'cc';
+import { _decorator, Component, Node, Prefab, Label, input, Size,Input,Vec3,UITransform, Button, director,Sprite,EventTarget,SpriteFrame,SpriteAtlas, math} from 'cc';
 import { UIManager } from '../UIManager';
 import { GlobalEnum } from '../global/GlobalEnum'
 const { ccclass, property } = _decorator;
@@ -14,6 +14,8 @@ export class russiaGame extends Component{
     cubeStartPosy = 380
     cubeStateTable = []
     rotIndex = 0
+    line = 12 //行
+    row = 16 //列
 
     onLoad(){
         let backBtn = cc.find("nodeLayer/back", this.node)
@@ -25,103 +27,81 @@ export class russiaGame extends Component{
         this.initBoard()
     }
 
-    //方块移动旋转检查
-    // checkCubeCanMove() {
-    //     let nowCubeChilds = this.nowActiveCube.children
-    //     let cubeData = this.nowActiveCube.cubeData
+    // 方块移动旋转检查
+    //type == 1移动 2旋转
+    checkCubeCanMove(type, direction:string) {
+        let nowCubeChilds = this.nowActiveCube.children
+        let newMovePos = []
+        if (type == 2) {
+            let cubeData = this.nowActiveCube.cubeData
+            for(let i = 0; i < nowCubeChilds.length; i++) {
+                let nowChilds = nowCubeChilds[i]
+                if (cubeData[this.rotIndex]) {
+                    newMovePos.push(cubeData[this.rotIndex][i])
+                }
+            }
+        }else{
+            let moveX = 0
+            if (direction == "left") {
+                moveX = -this.cellSize
+            }else if (direction == "right") {
+                moveX =  this.cellSize
+            }
+            for(let i = 0; i < nowCubeChilds.length; i++) {
+                let nowChilds = nowCubeChilds[i]
+                let movePos =  nowChilds.getPosition()
+                newMovePos.push({x : movePos.x + moveX,  y : movePos.y, z: movePos.z})
+            }
+        }
 
-    //     //旋转边界检查
-    //     let newMovePos = []
-    //     for(let i = 0; i < nowCubeChilds.length; i++) {
-    //         let nowChilds = nowCubeChilds[i]
-    //         if (cubeData[this.rotIndex]) {
-    //             newMovePos.push(cubeData[this.rotIndex][i])
-    //         }
-    //     }
+        for(let i = 0; i < newMovePos.length; i++) {
+            let movePos = newMovePos[i]
+            movePos = this.nowActiveCube.getComponent(UITransform).convertToWorldSpaceAR(movePos)
+            movePos = this.node.getComponent(UITransform).convertToNodeSpaceAR(movePos)
 
-    //     for(let i = 0; i < newMovePos.length; i++) {
-    //         let movePos = newMovePos[i]
-    //         movePos = this.nowActiveCube.getComponent(UITransform).convertToWorldSpaceAR(movePos)
-    //         movePos = this.node.getComponent(UITransform).convertToNodeSpaceAR(movePos)
+            for (let j = 0; j < this.cubeStateTable.length; j++) {
+                let stopChilds = this.cubeStateTable[j]
 
-    //         for (let j = 0; j < this.cubeStateTable.length; j++) {
-    //             let stopChilds = this.cubeStateTable[j]
-
-    //             let distanceY = Math.floor(movePos.y) - Math.floor(stopChilds.stopPos.y)
-    //             if (Math.floor(stopChilds.stopPos.y) <= Math.floor(movePos.y)) { //已经放置的y坐标大于移动cube的不考虑
-    //                 if (distanceY <= this.cellSize) { // y坐标距离小于等于40
-    //                     if (Math.floor(movePos.x) == Math.floor(stopChilds.stopPos.x)) { //并且x坐标有重合
-    //                         return true
-    //                     }
-    //                 }
-    //             }
-    //         }
+                let distanceY = Math.floor(movePos.y) - Math.floor(stopChilds.stopPos.y)
+                if (Math.floor(stopChilds.stopPos.y) <= Math.floor(movePos.y)) { //已经放置的y坐标大于移动cube的不考虑
+                    if (distanceY <= this.cellSize) { // y坐标距离小于等于40
+                        if (Math.floor(movePos.x) == Math.floor(stopChilds.stopPos.x)) { //并且x坐标有重合
+                            return true
+                        }
+                    }
+                }
+            }
             
-    //         if ((movePos.y) < -196) { //边界检查
-    //             return 
-    //         }
+            if (movePos.y < -196) { //边界检查
+                return true
+            }
 
-    //         if ((movePos.x) > 286) { //边界检查
-    //             return 
-    //         }
+            if (movePos.x > 286) { //边界检查
+                return true
+            }
 
-    //         if ((movePos.x) < -156) { //边界检查
-    //             return 
-    //         }
-    //     }
-    // }
+            if (movePos.x < -156) { //边界检查
+                return true
+            }
+        }
+    }
 
     keyDown(sender) {
         let oldCubePos = this.nowActiveCube.getPosition()
 
-        let self = this
-        function checkCanMove(direction:string) {
-            let moveX = 0
-            if (direction == "left") {
-                moveX = -self.cellSize
-            }else if (direction == "right") {
-                moveX =  self.cellSize
-            }
-
-            let newMovePos = [] //移动后的坐标
-            let nowCubeChilds = self.nowActiveCube.children
-            for(let i = 0; i < nowCubeChilds.length; i++) {
-                let nowChilds = nowCubeChilds[i]
-                let movePos =  nowChilds.getPosition()
-                movePos = self.nowActiveCube.getComponent(UITransform).convertToWorldSpaceAR(movePos)
-                movePos = self.node.getComponent(UITransform).convertToNodeSpaceAR(movePos)
-                newMovePos.push({x : movePos.x + moveX,  y : movePos.y, z: movePos.z})
-            }
-
-            for(let i = 0; i < newMovePos.length; i++) {
-                for (let j = 0; j < self.cubeStateTable.length; j++) {
-                    let stopChilds = self.cubeStateTable[j]
-                    if (newMovePos[i].x == stopChilds.stopPos.x && newMovePos[i].y == stopChilds.stopPos.y) { // 移动的坐标和停止的方块坐标有重合，禁止移动
-                        return true
-                    }
-                }
-
-                if (direction == "right" && newMovePos[i].x > 286) { //越界，不可移动
-                    return true
-                }
-
-                if (direction == "left" && newMovePos[i].x < -154) { //越界，不可移动
-                    return true
-                }
-           }
-        }
-
         if (sender.keyCode == GlobalEnum.GAME_KEY_CODE.KEY_LEFT) { //left
-            if (checkCanMove("left")) {
+            if (this.checkCubeCanMove(1,"left")) {
                 return
             }
+
             this.nowActiveCube.setPosition(oldCubePos.x - this.cellSize, oldCubePos.y)
         }else if (sender.keyCode == GlobalEnum.GAME_KEY_CODE.KEY_TOP){ //top
             this.cubeRotation()
         }else if (sender.keyCode == GlobalEnum.GAME_KEY_CODE.KEY_RIGHT){ //right
-            if (checkCanMove("right")) {
+            if (this.checkCubeCanMove(1,"right")) {
                 return
             }
+          
             this.nowActiveCube.setPosition(oldCubePos.x + this.cellSize, oldCubePos.y)
         }else if (sender.keyCode == GlobalEnum.GAME_KEY_CODE.KEY_DOWN){ //down
             if (oldCubePos.y <= -156) { //越界，不可移动
@@ -142,12 +122,15 @@ export class russiaGame extends Component{
         let startPosx = playBoardPos.x - playBoardSize.width / 2
         let startPosy = playBoardPos.y - playBoardSize.height / 2
 
-        for (let i = 0; i < 12; i++) {
-            for (let j = 0; j< 16; j++) {
+        for (let i = 0; i < this.line; i++) {
+            for (let j = 0; j< this.row; j++) {
+                let atlas = await gFunc.loadPlistSync("test_res/public.plist", SpriteAtlas) as SpriteAtlas; 
+                const frame = atlas.getSpriteFrame('public/public_item_box_2_1');
+
                 let resource = await gFunc.loadResSync("test_res/public_item_box_2_1/spriteFrame", SpriteFrame) as SpriteFrame; 
                 let newNode = new Node();
                 let sprite = newNode.addComponent(Sprite);
-                newNode.getComponent(Sprite).spriteFrame = resource
+                newNode.getComponent(Sprite).spriteFrame = frame
                 newNode.getComponent(UITransform).setContentSize(new Size(this.cellSize, this.cellSize))
                 newNode.setPosition(startPosx + i * this.cellSize + this.cellSize/2,startPosy + j * this.cellSize + this.cellSize/2)
                 this.node.addChild(newNode)
@@ -205,6 +188,7 @@ export class russiaGame extends Component{
                     this.cubeStateTable.push(childs)
                 }
                 this.unschedule(this.schedul);
+                this.checkCleanCube()
                 this.initCube()
                 return
             }else{
@@ -259,44 +243,12 @@ export class russiaGame extends Component{
             this.rotIndex = 0
         }
 
-        //旋转边界检查
-        let newMovePos = []
-        for(let i = 0; i < nowCubeChilds.length; i++) {
-            let nowChilds = nowCubeChilds[i]
-            if (cubeData[this.rotIndex]) {
-                newMovePos.push(cubeData[this.rotIndex][i])
+        if (this.checkCubeCanMove(2)) {
+            this.rotIndex = this.rotIndex - 1
+            if (this.rotIndex < 0) {
+                this.rotIndex = 0
             }
-        }
-
-        for(let i = 0; i < newMovePos.length; i++) {
-            let movePos = newMovePos[i]
-            movePos = this.nowActiveCube.getComponent(UITransform).convertToWorldSpaceAR(movePos)
-            movePos = this.node.getComponent(UITransform).convertToNodeSpaceAR(movePos)
-
-            for (let j = 0; j < this.cubeStateTable.length; j++) {
-                let stopChilds = this.cubeStateTable[j]
-
-                let distanceY = Math.floor(movePos.y) - Math.floor(stopChilds.stopPos.y)
-                if (Math.floor(stopChilds.stopPos.y) <= Math.floor(movePos.y)) { //已经放置的y坐标大于移动cube的不考虑
-                    if (distanceY <= this.cellSize) { // y坐标距离小于等于40
-                        if (Math.floor(movePos.x) == Math.floor(stopChilds.stopPos.x)) { //并且x坐标有重合
-                            return true
-                        }
-                    }
-                }
-            }
-            
-            if ((movePos.y) < -196) { //边界检查
-                return 
-            }
-
-            if ((movePos.x) > 286) { //边界检查
-                return 
-            }
-
-            if ((movePos.x) < -156) { //边界检查
-                return 
-            }
+            return 
         }
 
         for(let i = 0; i < nowCubeChilds.length; i++) {
@@ -305,8 +257,74 @@ export class russiaGame extends Component{
                 nowChilds.setPosition(cubeData[this.rotIndex][i])
             }
         }
+    }
 
+    //消除判断
+    checkCleanCube() {
+        let nowCubeChilds = this.nowActiveCube.children
+        let cleanPosY2 = []
+        for(let i = 0; i < nowCubeChilds.length; i++) {
+            let index = 0
+            let nowChilds = nowCubeChilds[i]
+            let movePos =  nowChilds.getPosition()
+            movePos = this.nowActiveCube.getComponent(UITransform).convertToWorldSpaceAR(movePos)
+            movePos = this.node.getComponent(UITransform).convertToNodeSpaceAR(movePos)
+
+            for (let j = 0; j < this.cubeStateTable.length; j++) {
+                let stopChilds = this.cubeStateTable[j]
+                
+                if (Math.floor(stopChilds.stopPos.y) == Math.floor(movePos.y)) { //已经放置的y坐标大于移动cube的不考虑
+                    index = index + 1
+                }
+            }
+
+            if (index == this.line) {
+                cleanPosY2.push(Math.floor(movePos.y))
+            }
+        }
+
+        cleanPosY2 = gFunc.mergerData(cleanPosY2)
         
+        if (cleanPosY2.length > 0) {
+            let array = this.cubeStateTable
+            console.log("删除前", array)
+           
+            for (let i = 0; i <cleanPosY2.length; i++) {
+                for (let j = 0; j < this.cubeStateTable.length; j++) {
+                    let stopChilds = this.cubeStateTable[j]
+                    if (Math.floor(stopChilds.stopPos.y) == Math.floor(cleanPosY2[i])) { //已经放置的y坐标大于移动cube的不考虑
+                        
+                        this.cubeStateTable.splice(j, 1)
+                        stopChilds.destroy()
+                        j--;
+                    }
+                }
+            }
+
+            console.log("删除后", this.cubeStateTable)
+
+            let offsetY = this.cellSize * cleanPosY2.length
+            if (offsetY <= -196) {
+                offsetY = 0
+            }
+            for (let j = 0; j < this.cubeStateTable.length; j++) {
+                let stopChilds = this.cubeStateTable[j]
+                stopChilds.setPosition(stopChilds.getPosition().x, stopChilds.getPosition().y - offsetY)
+                stopChilds.stopPos = new Vec3(stopChilds.stopPos.x , stopChilds.stopPos.y - offsetY, 0)
+            }
+
+            console.log("移动后", this.cubeStateTable)
+        }
+    }
+
+    //gameOver
+    gameOver(){
+
+    }
+
+    //积分增加
+    addScore(){
+
     }
 }
 
