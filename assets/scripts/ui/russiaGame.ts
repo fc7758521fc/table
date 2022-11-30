@@ -127,7 +127,6 @@ export class russiaGame extends Component{
                 let atlas = await gFunc.loadPlistSync("test_res/public.plist", SpriteAtlas) as SpriteAtlas; 
                 const frame = atlas.getSpriteFrame('public/public_item_box_2_1');
 
-                let resource = await gFunc.loadResSync("test_res/public_item_box_2_1/spriteFrame", SpriteFrame) as SpriteFrame; 
                 let newNode = new Node();
                 let sprite = newNode.addComponent(Sprite);
                 newNode.getComponent(Sprite).spriteFrame = frame
@@ -202,6 +201,7 @@ export class russiaGame extends Component{
 
     back(){
         UIManager.close()
+        cc.loader.releaseRes("public/public_item_box_2_1");
     }
 
     //是否下方有方块
@@ -318,8 +318,13 @@ export class russiaGame extends Component{
     }
 
     //gameOver
-    gameOver(){
+    async gameOver(){
+        let ui_params = []
+        let res = await gFunc.loadResSync("package/prefab/common/over", Prefab)
+        let commonBoard = cc.instantiate(res);
+        ui_params.rootNode = commonBoard
 
+        UIManager.showDefaultConfigUI(ui_params)
     }
 
     //积分增加

@@ -1,5 +1,5 @@
 //射击小球主逻辑
-import { _decorator, Component,EventTarget, Node ,Prefab, input, Input, MeshRenderer,Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset} from 'cc';
+import { _decorator, Component,EventTarget, Node ,Prefab, UIOpacity,input,Vec2, Input, MeshRenderer,Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset, UITransform} from 'cc';
 const { ccclass, property } = _decorator;
 
 import { gFunc } from './global/gFunc'
@@ -8,6 +8,7 @@ import { objectPool } from './global/objectPool'
 import { UIManager } from './UIManager'
 cc.myEvent = new EventTarget();
 import { EventMessage } from './global/eventManager'
+import { Label3D } from './tools/label-3d';
 
 @ccclass('shootGame')
 export class shootGame extends Component {
@@ -31,16 +32,29 @@ export class shootGame extends Component {
 
     barrierArray:Array = [];
 
+    isUpdate = false
+
+    linePointArray = [];
+
+    onLoad() {
+        //两个对象池初始化
+        objectPool.onLoad()
+        this.initLinePool()
+        this.initBallPool()
+    }
+
     async start() {
         this.score = 0;
 
-        input.on(Input.EventType.TOUCH_START, this.onMouseUp, this);
-
-        UIManager.setNodeParent(this.node)
+        input.on(Input.EventType.TOUCH_MOVE, this.onMouseMove, this);
+        input.on(Input.EventType.TOUCH_END, this.onMouseEnd, this);
 
         this.initStartView();
+        
+        UIManager.setNodeParent(this.node)
 
         cc.myEvent.on(EventMessage.GAME_ENTER, (arg1, arg2, arg3) => {
+            this.isUpdate = true
             this.startGame()
         });
 
@@ -49,19 +63,20 @@ export class shootGame extends Component {
         });
 
         cc.myEvent.on(EventMessage.GAME_OVER, (arg1, arg2, arg3) => {
+            this.isUpdate = true
             this.reStartGame()
         });
 
-        // let remoteUrl = "http://127.0.0.1/uibg_sealland.png";
-        // let that = this
-        // assetManager.loadRemote<ImageAsset>(remoteUrl, function (err, imageAsset) {
-        //     let spriteFrame = new SpriteFrame();
-        //     const texture = new Texture2D();
-        //     texture.image = imageAsset;
-        //     spriteFrame.texture=texture;
+        this.point = this.muzzle.getChildByName("ProgressBar")
+        let bar = this.point.getChildByName("Bar")
 
-        //     that.bg.getComponent(Sprite).spriteFrame = spriteFrame
-        // });
+        var tween= new Tween(bar.getComponent(UIOpacity))
+        .to(0.5, { opacity: 225 })
+        .to(0.5, { opacity: 0 })
+        .union()
+        .repeatForever()
+        .start();  
+
     }
 
     //开始游戏弹窗
@@ -82,17 +97,19 @@ export class shootGame extends Component {
             this.barrierUp()
             this.initBarrier()
         }
-        this.schedule(this.schedul, 1);
+        this.schedule(this.schedul, 3);
     }
 
     //障碍物生成
     initBarrier() {
          for (let i = 0; i < 3; i++) {
             let barrier = cc.instantiate(this.obstaclePrefab)as Node;
-            barrier.clickNums = 1
+            barrier.clickNums = 3
             barrier.active = true
             barrier.parent = this.node.parent;
             barrier.setPosition(new Vec3(math.randomRangeInt(-5, 5), 2, 0))
+            let numLabel = barrier.getChildByName("Cube").getChildByName("Node").getComponent(Label3D)
+            numLabel.string = "3"
 
             this.barrierArray.push(barrier)
         }
@@ -102,13 +119,8 @@ export class shootGame extends Component {
         
     }
 
-    //鼠标点击
-    onMouseUp(event) {
-        //子弹不够无法继续发射
-        if (this.modeIndex && this.modeIndex >= 10 ) {
-            return 
-        }
-
+    //得到箭头角度
+    getMuzzRadu(event) {
         //将发射点设置到箭头
         let sceenPos = event.getUILocation();
         let click_x = sceenPos.x
@@ -116,8 +128,8 @@ export class shootGame extends Component {
 
         let muzzle_x = this.muzzle.position.x
         let muzzle_y = this.muzzle.position.y
-        let tan_x = math.bits.abs(click_x - muzzle_x)
-        let tan_y = math.bits.abs(click_y - muzzle_y)
+        let tan_x = Math.abs(click_x - muzzle_x)
+        let tan_y = Math.abs(click_y - muzzle_y)
         
         let tan = tan_x/tan_y;
         let radu= tan / 3.1415926 * 180
@@ -135,11 +147,52 @@ export class shootGame extends Component {
             power = -radu
         }
         this.muzzle.setRotationFromEuler(0,0, end_radu)
+
+        return power
+    }
+
+    //鼠标移动
+    onMouseMove(event) {
+        if (this.isUpdate === false) {
+            return
+        }
+
+        let sceenPos = event.getUILocation();
+        this.getMuzzRadu(event)
+
+        let sceenPosLocal = event.getLocation();
+        let c_z = this.camera.node.worldPosition.z / 1000;
+        let worldPoint = this.camera.screenToWorld(new Vec3(sceenPosLocal.x, sceenPosLocal.y ,c_z));
+
+        let distance = Vec2.distance(new Vec2(this.muzzle.position.x,this.muzzle.position.y),sceenPos)
+        let bar = this.point.getChildByName("Bar")
+        this.point.active = true
+        bar.getComponent(UITransform).setContentSize(distance,12)
+    }
+
+    //鼠标放开
+    onMouseEnd(event) {
+        if (this.isUpdate === false) {
+            return
+        }
+        this.point.active = false
+
+        this.onMouseUp(event)
+    }
+
+    //鼠标点击
+    onMouseUp(event) {
+        //子弹不够无法继续发射
+        if (this.modeIndex && this.modeIndex >= 10 ) {
+            return 
+        }
+
+        let power = this.getMuzzRadu(event)
         
         // 以秒为单位的时间间隔
         let interval = 0.2;
         // 重复次数
-        let repeat = 0;
+        let repeat = 2;
         // 开始延时
         let delay = 0;
         this.schedule(async function() {
@@ -150,7 +203,6 @@ export class shootGame extends Component {
             ball.parent = this.node.parent;
             
             let sceenPosLocal = event.getLocation();
-
             let c_z = this.camera.node.worldPosition.z / 1000;
             let worldPoint = this.camera.screenToWorld(new Vec3(sceenPosLocal.x, sceenPosLocal.y ,c_z));
     
@@ -188,14 +240,22 @@ export class shootGame extends Component {
         if (event.otherCollider.node.name == "Cube") {
             // console.log("event.otherCollider.node.parent", event.otherCollider.node)
 
+            new Tween(event.otherCollider.node)
+            .to(0.05, { scale: new Vec3(0.65, 0.65, 0.65) })
+            .to(0.05, { scale: new Vec3(0.5, 0.5, 0.5) })
+            .start();
+
             let click_index = event.otherCollider.node.parent.clickNums
             event.otherCollider.node.parent.clickNums = event.otherCollider.node.parent.clickNums - 1
+            let numLabel = event.otherCollider.node.getChildByName("Node").getComponent(Label3D)
+            numLabel.string = event.otherCollider.node.parent.clickNums
 
             let rigid = event.selfCollider.node
             let rb = rigid.getComponent(RigidBody);
             rb.useGravity = true
 
             if (event.otherCollider.node.parent.clickNums <= 0 ) {
+                new Tween(event.otherCollider.node)
                 event.otherCollider.node.destroy();
             
                 this.addScore()
@@ -221,7 +281,8 @@ export class shootGame extends Component {
         //如果小球到达底板,放入对象池里面
         if (event.otherCollider.node.name == "Plane_box2") {
             event.selfCollider.node.pre.destroy();
-            // BallPool.enemyPool.put(event.selfCollider.node.pre); //目前还回对象池再次取用对象池道具会错位，暂未发现原因
+            let choosePool = objectPool.enemyPoolArray["ball"]
+            // choosePool.put(event.selfCollider.node.pre); //目前还回对象池再次取用对象池道具会错位，暂未发现原因
 
             this.modeIndex = this.modeIndex - 1
             this.reduceModel()
@@ -245,18 +306,19 @@ export class shootGame extends Component {
     //生成小球
     createPrefab(res) {
         let prefab = null;
-        if (objectPool.enemyPool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
-            prefab = objectPool.enemyPool.get();
+        let choosePool = objectPool.enemyPoolArray["ball"]
+        if (choosePool.size() > 0) { // 通过 size 接口判断对象池中是否有空闲的对象
+            prefab = choosePool.get();
         } else { // 如果没有空闲对象，也就是对象池中备用对象不够时，我们就用 cc.instantiate 重新创建
             prefab = cc.instantiate(res);
         }
         return prefab;
     }
 
-    //初始化对象池
+    //初始化小球对象池
     async initBallPool() {
         let resource = await gFunc.loadResSync("package/prefab/fight/ball", cc.Prefab) as Prefab; 
-        objectPool.initPool(resource)
+        objectPool.initPool(resource, "ball")
     }
 
     //小球数量模型
@@ -319,6 +381,7 @@ export class shootGame extends Component {
 
     //游戏结束
     gameOver() {
+        this.unschedule(this.schedul);
         this.initGameOverView()
         
         for(let i = 0; i < this.barrierArray.length ; i++) {
@@ -341,9 +404,15 @@ export class shootGame extends Component {
             barrier.destroy()
         }
 
+        for(let i = 0; i < this.modeArray.length ; i++) {
+            let ballModel = this.modeArray[i];
+            ballModel.destroy()
+        }
+
         this.barrierArray = []
-        this.unschedule(this.schedul);
+        this.modeArray = []
         this.schedul = null
+        this.isUpdate = false
     }
 
     //更多游戏入口(在里面写入多种小游戏，成为一个合集)
@@ -363,8 +432,6 @@ export class shootGame extends Component {
 
         this.initSchedule()
 
-        this.initBallPool()
-
         this.initBallModel()
     }
 
@@ -376,6 +443,12 @@ export class shootGame extends Component {
         ui_params.rootNode = commonBoard
 
         UIManager.showDefaultConfigUI(ui_params)
+    }
+
+    //初始化虚线对象池
+    async initLinePool() {
+        let resource = await gFunc.loadResSync("package/prefab/common/shop_point2", Prefab) 
+        objectPool.initPool(resource, "point")
     }
 }
 
