@@ -9,7 +9,11 @@
   },
   "physics": {
     "defaultMaterial": {
-      "restitution": 0.5
-    }
+      "restitution": 0.3,
+      "friction": 0,
+      "rollingFriction": 0,
+      "spinningFriction": 0
+    },
+    "maxSubSteps": 2
   }
 }

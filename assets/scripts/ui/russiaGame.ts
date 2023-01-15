@@ -76,7 +76,7 @@ export class russiaGame extends Component{
                 return true
             }
 
-            if (movePos.x > 286) { //边界检查
+            if (movePos.x > 326) { //边界检查
                 return true
             }
 
@@ -149,7 +149,7 @@ export class russiaGame extends Component{
 
     initCube(){
         this.rotIndex = 0
-        let rand = math.randomRangeInt(0,5)
+        let rand = math.randomRangeInt(0,1)
         let cubes = russiaGameCubeTools.getCube(rand)
         let cube = cc.instantiate(cubes)
         cube.cubeData = cubes.cubeData
@@ -285,10 +285,10 @@ export class russiaGame extends Component{
 
         cleanPosY2 = gFunc.mergerData(cleanPosY2)
         
+        // console.log("cleanPosY2cleanPosY2cleanPosY2", cleanPosY2)
+
         if (cleanPosY2.length > 0) {
             let array = this.cubeStateTable
-            console.log("删除前", array)
-           
             for (let i = 0; i <cleanPosY2.length; i++) {
                 for (let j = 0; j < this.cubeStateTable.length; j++) {
                     let stopChilds = this.cubeStateTable[j]
@@ -301,19 +301,20 @@ export class russiaGame extends Component{
                 }
             }
 
-            console.log("删除后", this.cubeStateTable)
-
             let offsetY = this.cellSize * cleanPosY2.length
             if (offsetY <= -196) {
                 offsetY = 0
             }
             for (let j = 0; j < this.cubeStateTable.length; j++) {
                 let stopChilds = this.cubeStateTable[j]
-                stopChilds.setPosition(stopChilds.getPosition().x, stopChilds.getPosition().y - offsetY)
-                stopChilds.stopPos = new Vec3(stopChilds.stopPos.x , stopChilds.stopPos.y - offsetY, 0)
+                console.log("stopChilds.stopPos.y <= cleanPosY2[0]", stopChilds.stopPos.y <= cleanPosY2[0])
+                if (stopChilds.stopPos.y <= cleanPosY2[0]) { //消除下层不移动
+                    
+                }else{
+                    stopChilds.setPosition(stopChilds.getPosition().x, stopChilds.getPosition().y - offsetY)
+                    stopChilds.stopPos = new Vec3(stopChilds.stopPos.x , stopChilds.stopPos.y - offsetY, 0)
+                }
             }
-
-            console.log("移动后", this.cubeStateTable)
         }
     }
 

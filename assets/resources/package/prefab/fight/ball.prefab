@@ -129,16 +129,16 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 1.81674941757137e-8,
+      "x": 0,
       "y": 0,
-      "z": 0
+      "z": 7.820129388491637e-8
     },
     "_lrot": {
       "__type__": "cc.Quat",
-      "x": -0.7071067811865477,
+      "x": -0.7071067690849304,
       "y": 0,
       "z": 0,
-      "w": 0.7071067811865474
+      "w": 0.7071067690849304
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -149,7 +149,7 @@
     "_layer": 1073741824,
     "_euler": {
       "__type__": "cc.Vec3",
-      "x": -90.00000000000003,
+      "x": -89.99999803884896,
       "y": 0,
       "z": 0
     },
@@ -222,8 +222,8 @@
     "_group": 1,
     "_type": 1,
     "_mass": 1,
-    "_allowSleep": true,
-    "_linearDamping": 0.1,
+    "_allowSleep": false,
+    "_linearDamping": 0,
     "_angularDamping": 0.1,
     "_useGravity": true,
     "_linearFactor": {

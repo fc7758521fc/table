@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, Label, UITransform, Button, director} from 'cc';
+import { _decorator, Component, Node, Prefab, Label, UITransform, Button, director, enumerableProps} from 'cc';
 import { UIManager } from '../UIManager';
 import { GlobalEnum } from '../global/GlobalEnum'
 const { ccclass, property } = _decorator;
@@ -17,7 +17,7 @@ export class selectGameView extends UIManager{
         let content = cc.find("nodeLayer/Sprite/ScrollView/view/content", this.node)
         
         let gameName = [
-            "小球射击" , "俄罗斯方块", "弹弹球"
+            "小球射击" , "俄罗斯方块", "三消" , "弹弹球"
         ]
         for (let i = 1; i <= Object.keys(GlobalEnum.GAME_TYPE_ENUM).length; i++) {
             let enterBtn = cc.instantiate(this.enterBtn)
@@ -41,7 +41,7 @@ export class selectGameView extends UIManager{
             let commonBoard = cc.instantiate(res);
             ui_params.rootNode = commonBoard
             UIManager.showDefaultConfigUI(ui_params)
-        }else if (sender.node.index == 3) {
+        }else  {
             gFunc.showToast("敬请期待")
         }
     }

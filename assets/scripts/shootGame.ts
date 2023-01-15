@@ -107,11 +107,15 @@ export class shootGame extends Component {
             barrier.clickNums = 3
             barrier.active = true
             barrier.parent = this.node.parent;
-            barrier.setPosition(new Vec3(math.randomRangeInt(-5, 5), 2, 0))
+            barrier.setPosition(new Vec3(math.randomRangeInt(-7, 7), 2, 0))
             let numLabel = barrier.getChildByName("Cube").getChildByName("Node").getComponent(Label3D)
             numLabel.string = "3"
 
             this.barrierArray.push(barrier)
+
+            let rigid = barrier.getChildByName("Cube");
+            let rb = rigid.getComponent(RigidBody);
+            rb.useCCD = true;
         }
     }
 
@@ -187,6 +191,7 @@ export class shootGame extends Component {
             return 
         }
 
+        let sceenPos = event.getUILocation();
         let power = this.getMuzzRadu(event)
         
         // 以秒为单位的时间间隔
@@ -210,19 +215,33 @@ export class shootGame extends Component {
 
             let rigid = ball.getChildByName("RootNode").getChildByName("ballball"); //如果层级较深的话，多级查找子节点
             let rb = rigid.getComponent(RigidBody);
+            rb.useCCD = true;
             // rb.applyImpulse(new Vec3(power, -10, 0));
-            rb.useGravity = false
+            // rb.useGravity = false
             // rb.setLinearVelocity(new math.Vec3(worldPoint.x, -20, 0));
 
-            const tw1 = new Tween(ball)
-            .to(0.5, { position: new Vec3(worldPoint.x, worldPoint.y, 0) })
-            .call(() => {
-                rb.applyImpulse(new Vec3(power, -10, 0));
-                rb.setLinearVelocity(new math.Vec3(worldPoint.x, -20, 0));
-                // rb.setLinearVelocity(new Vec3(worldPoint.x, -10, 0));
-                rb.useGravity = true
-            })
-            .start();
+            // rb.applyImpulse(new Vec3(worldPoint.x, worldPoint.y, 0));
+
+            // let distance = Vec2.distance(new Vec2(this.muzzle.position.x,this.muzzle.position.y),sceenPos)
+            // let offset = -2
+            // if (worldPoint.x > 1) {
+            //     offset = 2
+            // }
+            let distanceX = (worldPoint.x) - ball.position.x
+            let distanceY = (worldPoint.y) - ball.position.y
+
+
+            // console.log("worldPoint", worldPoint.x, worldPoint.y, (worldPoint.x), (worldPoint.y))
+            // rb.applyImpulse(new Vec3(distanceX, distanceY, 0));
+            rb.setLinearVelocity(new math.Vec3(distanceX,distanceY, 0));
+
+            // const tw1 = new Tween(ball)
+            // .to(0.5, { position: new Vec3(worldPoint.x, worldPoint.y, 0) })
+            // .call(() => {
+            //     rb.setLinearVelocity(new math.Vec3(distanceX,distanceY, 0));
+            // })
+            // .union()
+            // .start();
 
             rigid.pre = ball
 
@@ -237,7 +256,7 @@ export class shootGame extends Component {
     //碰撞检测
     private onCollision (event: ICollisionEvent) {
         //如果和小球碰撞
-        if (event.otherCollider.node.name == "Cube") {
+        if (event.otherCollider && event.otherCollider.node && event.otherCollider.node.name == "Cube") {
             // console.log("event.otherCollider.node.parent", event.otherCollider.node)
 
             new Tween(event.otherCollider.node)
@@ -248,11 +267,12 @@ export class shootGame extends Component {
             let click_index = event.otherCollider.node.parent.clickNums
             event.otherCollider.node.parent.clickNums = event.otherCollider.node.parent.clickNums - 1
             let numLabel = event.otherCollider.node.getChildByName("Node").getComponent(Label3D)
-            numLabel.string = event.otherCollider.node.parent.clickNums
+            if (numLabel && numLabel.string) {
+                numLabel.string = event.otherCollider.node.parent.clickNums
+            }
 
             let rigid = event.selfCollider.node
             let rb = rigid.getComponent(RigidBody);
-            rb.useGravity = true
 
             if (event.otherCollider.node.parent.clickNums <= 0 ) {
                 new Tween(event.otherCollider.node)
@@ -263,23 +283,23 @@ export class shootGame extends Component {
             }
         }
 
-        if (event.otherCollider.node.name == "Plane_box1") {
+        if (event.otherCollider && event.otherCollider.node && event.otherCollider.node.name == "Plane_box1") {
             let rigid = event.selfCollider.node
             let rb = rigid.getComponent(RigidBody);
             rb.applyImpulse(new Vec3(30, -10, 0));
         }
 
         //如果小球到达底板,放入对象池里面
-        if (event.otherCollider.node.name == "Plane_box3") {
+        if (event.otherCollider && event.otherCollider.node && event.otherCollider.node.name == "Plane_box3") {
             let rigid = event.selfCollider.node
             let rb = rigid.getComponent(RigidBody);
             rb.setLinearVelocity(new math.Vec3(0, 0, 0));
             rb.applyImpulse(new Vec3(0, 30, 0));
-            rb.useGravity = true
+            // rb.useGravity = true
         }
         
         //如果小球到达底板,放入对象池里面
-        if (event.otherCollider.node.name == "Plane_box2") {
+        if (event.otherCollider && event.otherCollider.node && event.otherCollider.node.name == "Plane_box2") {
             event.selfCollider.node.pre.destroy();
             let choosePool = objectPool.enemyPoolArray["ball"]
             // choosePool.put(event.selfCollider.node.pre); //目前还回对象池再次取用对象池道具会错位，暂未发现原因
