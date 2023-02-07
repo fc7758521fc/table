@@ -3,7 +3,7 @@ import { UIManager } from '../UIManager';
 import { GlobalEnum } from '../global/GlobalEnum'
 const { ccclass, property } = _decorator;
 import { gFunc } from '../global/gFunc'
-import { EventMessage } from '../global/eventManager'
+import { EventMessage } from '../eventManager'
 
 cc.myEvent = new EventTarget();
 

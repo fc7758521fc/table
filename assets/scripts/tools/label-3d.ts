@@ -1,6 +1,5 @@
 import { _decorator, Component, Node, Font, BitmapFont, CanvasPool, Vec2, ImageAsset, Texture2D, Asset, RenderTexture, MeshRenderer, Material, Vec3, Size, utils, geometry, EventHandler } from 'cc';
 const { ccclass, property, executeInEditMode } = _decorator;
-// https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/measureText
 export const BASELINE_RATIO = 0.26;
 const MAX_SIZE = 2048;
 @ccclass('Label3D')
@@ -77,7 +76,7 @@ export class Label3D extends Component {
         if (!this._assemblerData) return;
         this._context = this._assemblerData.context;
         this._canvas = this._assemblerData.canvas;
-
+        
         this.initTexture2D();
         this.updateFontFormatting();
         this.updateFontCanvasSize();
@@ -87,6 +86,87 @@ export class Label3D extends Component {
         this.updateMaterial();
         this.resetRenderData();
     }
+
+    private initTexture2D(): void {
+        if (!this._texture) {
+            let image: ImageAsset = new ImageAsset(this._canvas);
+            this._texture = new Texture2D();
+            this._texture.image = image;
+        }
+    }
+
+    /**
+    * 字体格式化
+    * “\n” 为换行符号
+    */
+    private updateFontFormatting(): void { //以’\n’ 作为换行符，格式化文本，并且计算文本显示的size
+        if (!this._context) return;
+        let strs: string[] = this._string.split("\\n"); 
+        this._splitStrings = strs;
+        for (let i = 0; i < strs.length; i++) {
+            //获取文本的宽度
+            let len: number = this._context.measureText(strs[i]).width;
+            if (len > this._canvasSize.width) {
+                this._canvasSize.width = len;
+            }
+        }
+        this._canvasSize.height = strs.length * this.getLineHeight() + BASELINE_RATIO * this.getLineHeight();
+    }
+
+    /**
+     * 根据字体的样式
+     * 更新canvas的size
+     */
+    private updateFontCanvasSize(): void { //通过文字显示所需的宽高，更新canvas的的size
+        this._canvasSize.width = Math.min(this._canvasSize.width, MAX_SIZE);
+        this._canvasSize.height = Math.min(this._canvasSize.height, MAX_SIZE);
+        if (this._canvas.width != this._canvasSize.width) {
+            this._canvas.width = this._canvasSize.width;
+        }
+        if (this._canvas.height != this._canvasSize.height) {
+            this._canvas.height = this._canvasSize.height;
+        }
+        this._context.font = this.getFontDesc();
+    }
+
+    /**
+     * 根据canvas的实际宽高
+     * 动态的调整mesh的坐标
+     */
+    //根据canvas 的宽高比例更新显示所需网格的顶点数据，这一步主要是保证生成的贴图显示在网格上的时候文字的宽高不会被压缩
+    private updateRenderMesh(): void {
+        let rate: number = this._canvas.width / this._canvas.height;
+        this._positions = [];
+        this._positions.push(-0.5 * rate, -0.5, 0);
+        this._positions.push(0.5 * rate, -0.5, 0);
+        this._positions.push(-0.5 * rate, 0.5, 0);
+        this._positions.push(-0.5 * rate, 0.5, 0);
+        this._positions.push(0.5 * rate, -0.5, 0);
+        this._positions.push(0.5 * rate, 0.5, 0);
+        
+        this._meshRender.mesh = utils.MeshUtils.createMesh({
+            positions: this._positions,
+            uvs: this._uvs,
+            minPos: { x: -0.5, y: -0.5, z: 0 },
+            maxPos: { x: 0.5, y: 0.5, z: 0 }
+        });
+        this._meshRender.model?.updateWorldBound();
+        this.updateMeshRenderMaterial();
+    }
+
+    private updateMaterial(): void {
+        if (!this._texture) return;
+        if (!this._meshRender) return;
+        if (!this._material) return;
+        let material: Material = this._meshRender.getMaterialInstance(0)!;
+        material.setProperty("mainTexture", this._texture);
+    }
+
+    private resetRenderData(): void {
+        this._canvasSize.width = 0;
+        this._canvasSize.height = 0;
+    }
+
     /**
      * 初始化渲染组件
      */
@@ -97,56 +177,15 @@ export class Label3D extends Component {
         }
         this.initRenderMesh();
     }
-    /**
-     * 初始话mesh的基础数据
-     * 最少的面数 6个顶点
-     */
-    private initRenderMesh(): void {
-        this._positions.push(-0.5, -0.5, 0);
-        this._uvs.push(0, 1);
-        this._positions.push(0.5, -0.5, 0);
-        this._uvs.push(1, 1);
-        this._positions.push(-0.5, 0.5, 0);
-        this._uvs.push(0, 0);
-        this._positions.push(-0.5, 0.5, 0);
-        this._uvs.push(0, 0);
-        this._positions.push(0.5, -0.5, 0);
-        this._uvs.push(1, 1);
-        this._positions.push(0.5, 0.5, 0);
-        this._uvs.push(1, 0);
-        // this._meshRender.mesh = utils.MeshUtils.createDynamicMesh(0, {
-        //     positions: new Float32Array(this._positions),
-        //     uvs: new Float32Array(this._uvs),
-        //     indices32:new Uint32Array(),
-        //     minPos: { x: -0.5, y: -0.5, z: 0 },
-        //     maxPos: { x: 0.5, y: 0.5, z: 0 }
-        // });
-        this._meshRender.mesh = utils.MeshUtils.createMesh({
-            positions: this._positions,
-            uvs: this._uvs,
-            minPos: { x: -0.5, y: -0.5, z: 0 },
-            maxPos: { x: 0.5, y: 0.5, z: 0 }
-        });
-        this._meshRender.model?.updateWorldBound();
-        // this._worldBounds = this._meshRender.model?.worldBounds!;
-        // let a = new Vec3();
-        // let b = new Vec3();
-        // this._worldBounds.getBoundary(a, b);
-        // console.log(a, b);
-        this.updateMeshRenderMaterial();
-    }
-    private updateMeshRenderMaterial(): void {
-        if (!this._meshRender || !this._material) return;
-        this._meshRender.material = this._material;
+
+    private updateFontRenderingStyle(): void {
+        this._context.font = this.getFontDesc();
+        this._context.lineJoin = "round";
+        this._context.textAlign = "left";
+        this._context.textBaseline = "alphabetic";
+        this._context.fillStyle = `rgba(${255}, ${255}, ${255}, ${255})`;
     }
 
-    private initTexture2D(): void {
-        if (!this._texture) {
-            let image: ImageAsset = new ImageAsset(this._canvas);
-            this._texture = new Texture2D();
-            this._texture.image = image;
-        }
-    }
     private updateTexture(): void {
         if (!this._context || !this._canvas) return;
         this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -171,70 +210,24 @@ export class Label3D extends Component {
         }
     }
 
-    private updateMaterial(): void {
-        if (!this._texture) return;
-        if (!this._meshRender) return;
-        if (!this._material) return;
-        let material: Material = this._meshRender.getMaterialInstance(0)!;
-        material.setProperty("mainTexture", this._texture);
-    }
     /**
-    * 字体格式化
-    * “\n” 为换行符号
-    */
-    private updateFontFormatting(): void {
-        if (!this._context) return;
-        let strs: string[] = this._string.split("\\n");
-        this._splitStrings = strs;
-        for (let i = 0; i < strs.length; i++) {
-            //获取文本的宽度
-            let len: number = this._context.measureText(strs[i]).width;
-            if (len > this._canvasSize.width) {
-                this._canvasSize.width = len;
-            }
-        }
-        this._canvasSize.height = strs.length * this.getLineHeight() + BASELINE_RATIO * this.getLineHeight();
-    }
-    /**
-     * 根据字体的样式
-     * 更新canvas的size
+     * 初始化mesh的基础数据
+     * 最少的面数 6个顶点
      */
-    private updateFontCanvasSize(): void {
-        this._canvasSize.width = Math.min(this._canvasSize.width, MAX_SIZE);
-        this._canvasSize.height = Math.min(this._canvasSize.height, MAX_SIZE);
-        if (this._canvas.width != this._canvasSize.width) {
-            this._canvas.width = this._canvasSize.width;
-        }
-        if (this._canvas.height != this._canvasSize.height) {
-            this._canvas.height = this._canvasSize.height;
-        }
-        this._context.font = this.getFontDesc();
-    }
-    private updateFontRenderingStyle(): void {
-        this._context.font = this.getFontDesc();
-        this._context.lineJoin = "round";
-        this._context.textAlign = "left";
-        this._context.textBaseline = "alphabetic";
-        this._context.fillStyle = `rgba(${255}, ${255}, ${255}, ${255})`;
-    }
-    /**
-     * 根据canvas的实际宽高
-     * 动态的调整mesh的坐标
-     */
-    private updateRenderMesh(): void {
-        let rate: number = this._canvas.width / this._canvas.height;
-        this._positions = [];
-        this._positions.push(-0.5 * rate, -0.5, 0);
-        this._positions.push(0.5 * rate, -0.5, 0);
-        this._positions.push(-0.5 * rate, 0.5, 0);
-        this._positions.push(-0.5 * rate, 0.5, 0);
-        this._positions.push(0.5 * rate, -0.5, 0);
-        this._positions.push(0.5 * rate, 0.5, 0);
-        // this._meshRender.mesh?.updateSubMesh(0, {
-        //     positions: new Float32Array(this._positions),
-        //     minPos: { x: -0.5 * rate, y: -0.5, z: 0 },
-        //     maxPos: { x: 0.5 * rate, y: 0.5, z: 0 }
-        // });
+    private initRenderMesh(): void {
+        this._positions.push(-0.5, -0.5, 0);
+        this._uvs.push(0, 1);
+        this._positions.push(0.5, -0.5, 0);
+        this._uvs.push(1, 1);
+        this._positions.push(-0.5, 0.5, 0);
+        this._uvs.push(0, 0);
+        this._positions.push(-0.5, 0.5, 0);
+        this._uvs.push(0, 0);
+        this._positions.push(0.5, -0.5, 0);
+        this._uvs.push(1, 1);
+        this._positions.push(0.5, 0.5, 0);
+        this._uvs.push(1, 0);
+   
         this._meshRender.mesh = utils.MeshUtils.createMesh({
             positions: this._positions,
             uvs: this._uvs,
@@ -244,6 +237,11 @@ export class Label3D extends Component {
         this._meshRender.model?.updateWorldBound();
         this.updateMeshRenderMaterial();
     }
+    private updateMeshRenderMaterial(): void {
+        if (!this._meshRender || !this._material) return;
+        this._meshRender.material = this._material;
+    }
+    
     /**
      * 获取行高
      */
@@ -256,11 +254,6 @@ export class Label3D extends Component {
         fontDesc += "50px ";
         fontDesc += "Arial"
         return fontDesc;
-    }
-
-    private resetRenderData(): void {
-        this._canvasSize.width = 0;
-        this._canvasSize.height = 0;
     }
 
     update(deltaTime: number) {

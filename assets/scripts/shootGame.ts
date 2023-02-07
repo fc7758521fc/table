@@ -7,7 +7,7 @@ import { utils } from './global/utils'
 import { objectPool } from './global/objectPool'
 import { UIManager } from './UIManager'
 cc.myEvent = new EventTarget();
-import { EventMessage } from './global/eventManager'
+import { EventMessage } from './eventManager'
 import { Label3D } from './tools/label-3d';
 
 @ccclass('shootGame')

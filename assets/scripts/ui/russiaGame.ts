@@ -3,7 +3,7 @@ import { UIManager } from '../UIManager';
 import { GlobalEnum } from '../global/GlobalEnum'
 const { ccclass, property } = _decorator;
 import { gFunc } from '../global/gFunc'
-import { EventMessage } from '../global/eventManager'
+import { EventMessage } from '../eventManager'
 import { russiaGameCubeTools } from './russiaGameCubeTools'
 
 cc.myEvent = new EventTarget();
@@ -149,7 +149,7 @@ export class russiaGame extends Component{
 
     initCube(){
         this.rotIndex = 0
-        let rand = math.randomRangeInt(0,1)
+        let rand = math.randomRangeInt(0,6)
         let cubes = russiaGameCubeTools.getCube(rand)
         let cube = cc.instantiate(cubes)
         cube.cubeData = cubes.cubeData
