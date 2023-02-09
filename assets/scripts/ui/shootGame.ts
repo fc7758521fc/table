@@ -202,7 +202,7 @@ export class shootGame extends Component {
         let delay = 0;
         this.schedule(async function() {
             // 这里的 this 指向 component
-            let res = await this.getPrefabResource("package/prefab/fight/ball", cc.Prefab)
+            let res = await this.getPrefabResource("package/prefab/ui/ball", cc.Prefab)
 
             let ball = this.createPrefab(res);
             ball.parent = this.node.parent;
@@ -337,7 +337,7 @@ export class shootGame extends Component {
 
     //初始化小球对象池
     async initBallPool() {
-        let resource = await gFunc.loadResSync("package/prefab/fight/ball", cc.Prefab) as Prefab; 
+        let resource = await gFunc.loadResSync("package/prefab/ui/ball", cc.Prefab) as Prefab; 
         objectPool.initPool(resource, "ball")
     }
 
