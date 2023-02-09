@@ -2,13 +2,13 @@
 import { _decorator, Component,EventTarget, Node ,Prefab, UIOpacity,input,Vec2, Input, MeshRenderer,Camera, Vec3, Canvas,Tween, RigidBody, math, Sprite,SphereCollider, ICollisionEvent, Label, resources, SpriteFrame, assetManager, Texture2D, ImageAsset, UITransform} from 'cc';
 const { ccclass, property } = _decorator;
 
-import { gFunc } from './global/gFunc'
-import { utils } from './global/utils'
-import { objectPool } from './global/objectPool'
-import { UIManager } from './UIManager'
+import { gFunc } from '../global/gFunc'
+import { utils } from '../global/utils'
+import { objectPool } from '../global/objectPool'
+import { UIManager } from '../UIManager'
 cc.myEvent = new EventTarget();
-import { EventMessage } from './eventManager'
-import { Label3D } from './tools/label-3d';
+import { EventMessage } from '../eventManager'
+import { Label3D } from '../tools/label-3d';
 
 @ccclass('shootGame')
 export class shootGame extends Component {

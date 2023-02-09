@@ -18,45 +18,45 @@ export class russiaGameCubeTools extends Component{
     }
 
     static initCubeCfg(){
-        //  //正方形
-        //  let squarePos = [{
-        //     0 : {x : 0,  y : 0, z: 0},
-        //     1 : {x : 40, y : 0, z: 0},
-        //     2 : {x : 0,  y : 40,z: 0},
-        //     3 : {x : 40, y : 40,z: 0},
-        // }]
+         //正方形
+         let squarePos = [{
+            0 : {x : 0,  y : 0, z: 0},
+            1 : {x : 40, y : 0, z: 0},
+            2 : {x : 0,  y : 40,z: 0},
+            3 : {x : 40, y : 40,z: 0},
+        }]
 
-        // // //Z方形
-        // let zCubePos = [
-        //     {
-        //         0 : {x : 0,  y : 40, z: 0},
-        //         1 : {x : 40, y : 0, z: 0},
-        //         2 : {x : 40,  y : 40,z: 0},
-        //         3 : {x : 80, y : 0,z: 0}
-        //     },
-        //     {
-        //         0 : {x : 0,  y : 0, z: 0},
-        //         1 : {x : 0, y : 40, z: 0},
-        //         2 : {x : 40,  y : 40,z: 0},
-        //         3 : {x : 40, y : 80,z: 0}
-        //     }
-        // ]
+        // //Z方形
+        let zCubePos = [
+            {
+                0 : {x : 0,  y : 40, z: 0},
+                1 : {x : 40, y : 0, z: 0},
+                2 : {x : 40,  y : 40,z: 0},
+                3 : {x : 80, y : 0,z: 0}
+            },
+            {
+                0 : {x : 0,  y : 0, z: 0},
+                1 : {x : 0, y : 40, z: 0},
+                2 : {x : 40,  y : 40,z: 0},
+                3 : {x : 40, y : 80,z: 0}
+            }
+        ]
 
-        // // //Z方形(反向)
-        // let zrCubePos = [
-        //     {
-        //         0 : {x : 0,  y : 0, z: 0},
-        //         1 : {x : 40, y : 0, z: 0},
-        //         2 : {x : 40,  y : 40,z: 0},
-        //         3 : {x : 80, y : 40,z: 0}
-        //     },
-        //     {
-        //         0 : {x : 0,  y : 40, z: 0},
-        //         1 : {x : 0, y : 80, z: 0},
-        //         2 : {x : 40,  y : 0,z: 0},
-        //         3 : {x : 40, y : 40,z: 0}
-        //     }
-        // ]
+        // //Z方形(反向)
+        let zrCubePos = [
+            {
+                0 : {x : 0,  y : 0, z: 0},
+                1 : {x : 40, y : 0, z: 0},
+                2 : {x : 40,  y : 40,z: 0},
+                3 : {x : 80, y : 40,z: 0}
+            },
+            {
+                0 : {x : 0,  y : 40, z: 0},
+                1 : {x : 0, y : 80, z: 0},
+                2 : {x : 40,  y : 0,z: 0},
+                3 : {x : 40, y : 40,z: 0}
+            }
+        ]
 
         // //长方形
         let cCubePos = [
@@ -75,55 +75,55 @@ export class russiaGameCubeTools extends Component{
         ]
 
         // // //T形
-        // let tCubePos = [
-        //     {
-        //         0 : {x : 0,  y : 0, z: 0},
-        //         1 : {x : 40, y : 0, z: 0},
-        //         2 : {x : 80,  y : 0,z: 0},
-        //         3 : {x : 40, y : 40,z: 0}
-        //     },
-        //     {
-        //         0 : {x : 40,  y : 0, z: 0},
-        //         1 : {x : 80, y : 0, z: 0},
-        //         2 : {x : 40,  y :40,z: 0},
-        //         3 : {x : 40, y : -40,z: 0}
-        //     },
-        //     {
-        //         0 : {x : 0,  y : 0, z: 0},
-        //         1 : {x : 40, y : 0, z: 0},
-        //         2 : {x : 80,  y :0,z: 0},
-        //         3 : {x : 40, y : -40,z: 0}
-        //     },
-        //     {
-        //         0 : {x : 0,  y : 0, z: 0},
-        //         1 : {x : 40, y : 0, z: 0},
-        //         2 : {x : 40,  y :40,z: 0},
-        //         3 : {x : 40, y : -40,z: 0}
-        //     }
-        // ]
+        let tCubePos = [
+            {
+                0 : {x : 0,  y : 0, z: 0},
+                1 : {x : 40, y : 0, z: 0},
+                2 : {x : 80,  y : 0,z: 0},
+                3 : {x : 40, y : 40,z: 0}
+            },
+            {
+                0 : {x : 40,  y : 0, z: 0},
+                1 : {x : 80, y : 0, z: 0},
+                2 : {x : 40,  y :40,z: 0},
+                3 : {x : 40, y : -40,z: 0}
+            },
+            {
+                0 : {x : 0,  y : 0, z: 0},
+                1 : {x : 40, y : 0, z: 0},
+                2 : {x : 80,  y :0,z: 0},
+                3 : {x : 40, y : -40,z: 0}
+            },
+            {
+                0 : {x : 0,  y : 0, z: 0},
+                1 : {x : 40, y : 0, z: 0},
+                2 : {x : 40,  y :40,z: 0},
+                3 : {x : 40, y : -40,z: 0}
+            }
+        ]
 
-        // // //L形
-        // let lCubePos = [
-        //     {
-        //         0 : {x : 0,  y : 0, z: 0},
-        //         1 : {x : 0, y : 40, z: 0},
-        //         2 : {x : 40,  y : 0,z: 0},
-        //         3 : {x : 80, y : 0,z: 0}
-        //     },
-        //     {
-        //         0 : {x : 40,  y : 0, z: 0},
-        //         1 : {x : 80, y : 0, z: 0},
-        //         2 : {x : 40,  y :40,z: 0},
-        //         3 : {x : 40, y : -40,z: 0}
-        //     },
-        // ]
+        // //L形
+        let lCubePos = [
+            {
+                0 : {x : 0,  y : 0, z: 0},
+                1 : {x : 0, y : 40, z: 0},
+                2 : {x : 40,  y : 0,z: 0},
+                3 : {x : 80, y : 0,z: 0}
+            },
+            {
+                0 : {x : 40,  y : 0, z: 0},
+                1 : {x : 80, y : 0, z: 0},
+                2 : {x : 40,  y :40,z: 0},
+                3 : {x : 40, y : -40,z: 0}
+            },
+        ]
 
-        // this.allCubeArray.push(squarePos)
-        // this.allCubeArray.push(zCubePos)
-        // this.allCubeArray.push(zrCubePos)
+        this.allCubeArray.push(squarePos)
+        this.allCubeArray.push(zCubePos)
+        this.allCubeArray.push(zrCubePos)
         this.allCubeArray.push(cCubePos)
-        // this.allCubeArray.push(tCubePos)
-        // this.allCubeArray.push(lCubePos)
+        this.allCubeArray.push(tCubePos)
+        this.allCubeArray.push(lCubePos)
     }
 
     //初始化cube

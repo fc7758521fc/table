@@ -149,7 +149,7 @@ export class russiaGame extends Component{
 
     initCube(){
         this.rotIndex = 0
-        let rand = math.randomRangeInt(0,1)
+        let rand = math.randomRangeInt(0,6)
         let cubes = russiaGameCubeTools.getCube(rand)
         let cube = cc.instantiate(cubes)
         cube.cubeData = cubes.cubeData
