@@ -128,20 +128,20 @@ export class eliminateGame extends Component{
                 // label2.color = new cc.color(255,255,255);
                 // this.node.addChild(labelNode2);
                 
-                // let labelNode = new Node();
-                // let label = labelNode.addComponent(Label);
-                // labelNode.setPosition(startPosx + i * this.cellSize + this.cellSize/2,startPosy + j * this.cellSize + this.cellSize/2 + 10, 100)
-                // label.string = i + "," + j
-                // label.fontSize = 20
-                // label.color = new cc.color(255,255,255);
-                // this.node.addChild(labelNode, 100)
+                let labelNode = new Node();
+                let label = labelNode.addComponent(Label);
+                labelNode.setPosition(startPosx + i * this.cellSize + this.cellSize/2,startPosy + j * this.cellSize + this.cellSize/2 + 10, 100)
+                label.string = index
+                label.fontSize = 20
+                label.color = new cc.color(255,255,255);
+                this.node.addChild(labelNode, 100)
 
                 let labelNode2 = new Node();
                 let label2 = labelNode2.addComponent(Label);
-                labelNode2.setPosition(new Vec3(startPosx + i * this.cellSize + this.cellSize/2,startPosy + j * this.cellSize + this.cellSize/2 - 10), 1000)
-                label2.string = index
+                labelNode2.setPosition(new Vec3(startPosx + i * this.cellSize + this.cellSize/2,startPosy + j * this.cellSize + this.cellSize/2 - 10))
+                label2.string = i + "," + j
                 label2.fontSize = 24;
-                label2.color = new cc.color(0,255,0);
+                label2.color = new cc.color(255,255,0);
                 this.node.addChild(labelNode2);
 
                 index = index + 1
@@ -149,7 +149,7 @@ export class eliminateGame extends Component{
         }
 
         setTimeout(()=>{ 
-            this.checkEliminClean()
+           this.checkEliminClean()
         }, 2000);
     }
 
@@ -199,7 +199,7 @@ export class eliminateGame extends Component{
             }
         }
         
-        console.log("index_array_newindex_array_newindex_array_new", index_array_new)
+        // console.log("index_array_newindex_array_newindex_array_new", index_array_new)
         //消除
         for(let i = 0; i < this.eliminateArray.length; i++) {
             let cube = this.eliminateArray[i]
@@ -211,9 +211,9 @@ export class eliminateGame extends Component{
             }
         }
 
-        console.log("index_array_newindex_array_new", this.eliminateArray, index_array_new)
+        // console.log("index_array_newindex_array_new", this.eliminateArray, index_array_new)
 
-        //数据重置
+        //数据交换
         for (let i = 0; i < this.eliminateArray.length; i++) {
             let cube = this.eliminateArray[i]
             for (let j = 0; j < index_array_new.length; j++) {
@@ -230,7 +230,21 @@ export class eliminateGame extends Component{
                 }
             }
         } 
-        console.log("index_array_newindex_array_new", this.eliminateArray, index_array_new)
+        // console.log("index_array_newindex_array_new", this.eliminateArray, index_array_new)
+
+        //数据整理
+        for (let j = 0; j< this.eliminateArray.length; j++) {
+            let cube = this.eliminateArray[j]
+            if (cube) {
+                let newi = Math.floor(j / 8)
+                let newj = j % 8
+                cube.line = newi
+                cube.row = newj
+                cube.index = j
+                cube.posX = startPosx + newi * this.cellSize + this.cellSize/2
+                cube.posY = startPosy + newj * this.cellSize + this.cellSize/2
+            }
+        }
 
         //生成新块落下
             let index = 0
@@ -266,14 +280,14 @@ export class eliminateGame extends Component{
                     // .start();
                 }
             }
-        console.log("index_array_newindex_array_new", this.eliminateArray, index_array_new)
+        // console.log("index_array_newindex_array_new", this.eliminateArray, index_array_new)
 
         //递归调用检查
-        // if (index_array_new.length > 0) {
-        //     setTimeout(()=>{ 
-        //         this.checkEliminClean()
-        //     }, 2000);
-        // }
+        if (index_array_new.length > 0) {
+            setTimeout(()=>{ 
+                this.checkEliminClean()
+            }, 2000);
+        }
     }
 
     touchStart(event) {
