@@ -9,6 +9,8 @@ import { UIManager } from '../UIManager'
 cc.myEvent = new EventTarget();
 import { EventMessage } from '../eventManager'
 import { Label3D } from '../tools/label-3d';
+import { GlobalEnum } from '../global/GlobalEnum'
+import { gameOver } from './gameOver'
 
 @ccclass('shootGame')
 export class shootGame extends Component {
@@ -157,6 +159,7 @@ export class shootGame extends Component {
 
     //鼠标移动
     onMouseMove(event) {
+        console.log("111111111111")
         if (this.isUpdate === false) {
             return
         }
@@ -176,6 +179,7 @@ export class shootGame extends Component {
 
     //鼠标放开
     onMouseEnd(event) {
+        console.log("22222222222222222")
         if (this.isUpdate === false) {
             return
         }
@@ -461,6 +465,7 @@ export class shootGame extends Component {
         let res = await gFunc.loadResSync("package/prefab/common/over", Prefab)
         let commonBoard = cc.instantiate(res);
         ui_params.rootNode = commonBoard
+        commonBoard.getComponent(gameOver).setTag(GlobalEnum.GAME_TYPE_ENUM.SHOOT)
 
         UIManager.showDefaultConfigUI(ui_params)
     }
@@ -469,6 +474,10 @@ export class shootGame extends Component {
     async initLinePool() {
         let resource = await gFunc.loadResSync("package/prefab/common/shop_point2", Prefab) 
         objectPool.initPool(resource, "point")
+    }
+
+    onDisable(){
+        console.log("dsfadsfasfasdf")
     }
 }
 

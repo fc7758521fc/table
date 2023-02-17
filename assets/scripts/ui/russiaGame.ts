@@ -5,6 +5,7 @@ const { ccclass, property } = _decorator;
 import { gFunc } from '../global/gFunc'
 import { EventMessage } from '../eventManager'
 import { russiaGameCubeTools } from './russiaGameCubeTools'
+import { gameOver } from './gameOver'
 
 cc.myEvent = new EventTarget();
 
@@ -21,7 +22,9 @@ export class russiaGame extends Component{
         let backBtn = cc.find("nodeLayer/back", this.node)
         backBtn.on(Button.EventType.CLICK, this.back, this);
 
-        input.on(Input.EventType.KEY_DOWN, this.keyDown, this);
+        cc.myEvent.on(EventMessage.GAME_RESTART, (arg1, arg2, arg3) => {
+            this.reStartGame()
+        });
 
         russiaGameCubeTools.onLoad()
         this.initBoard()
@@ -87,6 +90,10 @@ export class russiaGame extends Component{
     }
 
     keyDown(sender) {
+        if (this.isover) {
+            return
+        }
+
         let oldCubePos = this.nowActiveCube.getPosition()
 
         if (sender.keyCode == GlobalEnum.GAME_KEY_CODE.KEY_LEFT) { //left
@@ -108,7 +115,7 @@ export class russiaGame extends Component{
                 return
             } 
 
-            if (this.checkHasStop()) {
+            if (this.checkHasStop() == 1 || this.checkHasStop() == 2) {
                 return
             }
             this.nowActiveCube.setPosition(oldCubePos.x , oldCubePos.y - this.cellSize)
@@ -171,27 +178,43 @@ export class russiaGame extends Component{
                 movePos = this.node.getComponent(UITransform).convertToNodeSpaceAR(movePos)
                 lb.string = Math.floor(movePos.x)
             }
-
-            if (this.checkHasStop()) { //到达底板或者下面有方块，停止
-                let allChilds = cube.children
+            
+            console.log("this.checkHasStop()this.checkHasStop()", this.checkHasStop())
+            let allChilds = cube.children
+            if (this.checkHasStop() == 1) { //到达底板或者下面有方块，停止
                 for(let i = 0; i < allChilds.length; i++) {
                     let stopChilds = allChilds[i]
                     
                     let stopPos =  stopChilds.getPosition()
                     stopPos = cube.getComponent(UITransform).convertToWorldSpaceAR(stopPos)
                     stopPos = this.node.getComponent(UITransform).convertToNodeSpaceAR(stopPos)
-
+    
                     let childs = allChilds[i]
                     childs.stopPos = stopPos
-
+    
                     this.cubeStateTable.push(childs)
                 }
                 this.unschedule(this.schedul);
                 this.checkCleanCube()
                 this.initCube()
                 return
-            }else{
+            }else if (this.checkHasStop() == -1){
                 cube.setPosition(cubePos.x, cubePos.y - this.cellSize)
+            }else if (this.checkHasStop() == 2){
+                for(let i = 0; i < allChilds.length; i++) {
+                    let stopChilds = allChilds[i]
+                    
+                    let stopPos =  stopChilds.getPosition()
+                    stopPos = cube.getComponent(UITransform).convertToWorldSpaceAR(stopPos)
+                    stopPos = this.node.getComponent(UITransform).convertToNodeSpaceAR(stopPos)
+    
+                    let childs = allChilds[i]
+                    childs.stopPos = stopPos
+    
+                    this.cubeStateTable.push(childs)
+                }
+                this.unschedule(this.schedul);
+                this.gameOver()
             }
         }
         this.schedule(this.schedul, 0.5);
@@ -220,18 +243,21 @@ export class russiaGame extends Component{
                 if (Math.floor(stopChilds.stopPos.y) <= Math.floor(movePos.y)) { //已经放置的y坐标大于移动cube的不考虑
                     if (distanceY <= this.cellSize) { // y坐标距离小于等于40
                         if (Math.floor(movePos.x) == Math.floor(stopChilds.stopPos.x)) { //并且x坐标有重合
-                            return true
+                            if (movePos.y > 365) {
+                                return 2 //游戏结束
+                            }
+
+                            return 1
                         }
                     }
                 }
             }
-
             if ((movePos.y - this.cellSize) < -196) { //边界检查
-                return true
+                return 1
             }
         }
 
-        return false
+        return -1
     }
 
     //方块旋转
@@ -324,13 +350,26 @@ export class russiaGame extends Component{
         let res = await gFunc.loadResSync("package/prefab/common/over", Prefab)
         let commonBoard = cc.instantiate(res);
         ui_params.rootNode = commonBoard
+        commonBoard.getComponent(gameOver).setTag(GlobalEnum.GAME_TYPE_ENUM.RUSSIACUBE)
 
         UIManager.showDefaultConfigUI(ui_params)
+
+        this.isover = true
     }
 
-    //积分增加
-    addScore(){
+    //重新开始
+    reStartGame(){
+        console.log("重新开始",this.cubeStateTable)
+        for (let j = 0; j < this.cubeStateTable.length; j++) {
+            let stopChilds = this.cubeStateTable[j]
+            this.cubeStateTable.splice(j, 1)
+            stopChilds.destroy()
+            j--;
+        }
 
+        this.cubeStateTable = [];
+        this.initCube()
+        this.isover = false
     }
 }
 

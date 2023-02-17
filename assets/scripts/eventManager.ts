@@ -9,6 +9,8 @@ export enum EventMessage {
     GAME_MORE = "EventMessage.GAME_MORE",
     /** 结束游戏 */
     GAME_OVER = "EventMessage.GAME_OVER",
+    /** 重新开始 */
+    GAME_RESTART = "EventMessage.GAME_RESTART",
 }
 
 

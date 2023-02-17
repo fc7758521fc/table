@@ -7,18 +7,27 @@ import { EventMessage } from '../eventManager'
 
 cc.myEvent = new EventTarget();
 
-@ccclass('startGame')
-export class startGame extends Component{
-
+@ccclass('gameOver')
+export class gameOver extends Component{
     onLoad(){
         let restartBtn = cc.find("restart", this.node)
+        console.log("123123123123", restartBtn)
         restartBtn.on(Button.EventType.CLICK, this.restartCallback, this);
     }
 
 
     restartCallback() {
         UIManager.close()
-        cc.myEvent.emit(EventMessage.GAME_OVER, 1);
+        if (gameOver.tag == GlobalEnum.GAME_TYPE_ENUM.SHOOT) {
+            cc.myEvent.emit(EventMessage.GAME_OVER);
+        }else{
+            cc.myEvent.emit(EventMessage.GAME_RESTART);
+        }
+        
+    }
+
+    public setTag(tag) {
+        gameOver.tag = tag 
     }
 
 
