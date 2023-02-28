@@ -14,6 +14,16 @@
       "rollingFriction": 0,
       "spinningFriction": 0
     },
-    "maxSubSteps": 2
+    "maxSubSteps": 2,
+    "collisionGroups": [
+      {
+        "index": 1,
+        "name": "asd"
+      }
+    ],
+    "collisionMatrix": {
+      "0": 1,
+      "1": 2
+    }
   }
 }

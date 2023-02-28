@@ -22,6 +22,7 @@ export class russiaGame extends Component{
         let backBtn = cc.find("nodeLayer/back", this.node)
         backBtn.on(Button.EventType.CLICK, this.back, this);
 
+        input.on(Input.EventType.KEY_DOWN, this.keyDown, this);
         cc.myEvent.on(EventMessage.GAME_RESTART, (arg1, arg2, arg3) => {
             this.reStartGame()
         });
