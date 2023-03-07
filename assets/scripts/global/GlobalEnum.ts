@@ -7,7 +7,9 @@ export class GlobalEnum {
         SHOOT:0,
         JUMPBALL:1,
         RUSSIACUBE:2,
-        ELIMINATE:3
+        ELIMINATE:3,
+        QUADTREE:4, 
+        WATERMELON:5,
     }
 
     static GAME_KEY_CODE = { //按钮枚举

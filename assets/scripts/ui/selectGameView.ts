@@ -17,7 +17,7 @@ export class selectGameView extends UIManager{
         let content = cc.find("nodeLayer/Sprite/ScrollView/view/content", this.node)
         
         let gameName = [
-            "小球射击" , "俄罗斯方块", "三消" , "弹弹球", "敬请期待"
+            "弹弹球" , "俄罗斯方块", "三消" , "打砖块", "四叉树碰撞检测", "西瓜消消乐"
         ]
         for (let i = 1; i <= Object.keys(GlobalEnum.GAME_TYPE_ENUM).length; i++) {
             let enterBtn = cc.instantiate(this.enterBtn)
@@ -50,6 +50,12 @@ export class selectGameView extends UIManager{
         }else if (sender.node.index == 4) {
             let ui_params = []
             let res = await gFunc.loadResSync("package/prefab/ui/bouncingBall", Prefab)
+            let commonBoard = cc.instantiate(res);
+            ui_params.rootNode = commonBoard
+            UIManager.showDefaultConfigUI(ui_params)
+        }else if (sender.node.index == 5) {
+            let ui_params = []
+            let res = await gFunc.loadResSync("package/prefab/ui/quadtree", Prefab)
             let commonBoard = cc.instantiate(res);
             ui_params.rootNode = commonBoard
             UIManager.showDefaultConfigUI(ui_params)
