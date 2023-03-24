@@ -45,8 +45,6 @@ export default class QuadtreeCollision {
 
 }
 
-// 欢迎关注微信公众号[白玉无冰]
-
 function testContact(collider1, collider2) {
     // 分组不通过
     // if (!cc.director.getCollisionManager()['shouldCollide'](collider1, collider2)) {
@@ -89,13 +87,6 @@ function testContact(collider1, collider2) {
 }
 
 
-/**
- * quadtree-js
- * @version 1.2.2
- * @license MIT
- * @author Timo Hausmann
- */
-
 /* https://github.com/timohausmann/quadtree-js.git v1.2.2 */
 
 /**
@@ -113,13 +104,13 @@ function Quadtree(bounds, max_objects?, max_levels?, level?) {
     this.level = level || 0; //子节点深度
     this.bounds = bounds; //边界
 
-    this.objects = [];
-    this.nodes = [];
+    this.objects = [];//物体数组
+    this.nodes = []; //四个子节点
 };
 
 
 /**
- * Split the node into 4 subnodes
+ * 将当前节点分成4个子节点，并用计算好的新节点数据初始化
  */
 Quadtree.prototype.split = function () {
 
@@ -160,11 +151,13 @@ Quadtree.prototype.split = function () {
         width: subWidth,
         height: subHeight
     }, this.max_objects, this.max_levels, nextLevel);
+
+
 };
 
 
 /**
- * Determine which node the object belongs to
+ * 判断对象属于哪个节点
  * @param Object pRect      bounds of the area to be checked, with x, y, width, height
  * @return Array            an array of indexes of the intersecting subnodes 
  *                          (0-3 = top-right, top-left, bottom-left, bottom-right / ne, nw, sw, se) 右上、左上、左下、右下
@@ -172,8 +165,8 @@ Quadtree.prototype.split = function () {
 Quadtree.prototype.getIndex = function (pRect) {
 
     var indexes = [],
-        verticalMidpoint = this.bounds.x + (this.bounds.width / 2),
-        horizontalMidpoint = this.bounds.y + (this.bounds.height / 2);
+        verticalMidpoint = this.bounds.x + (this.bounds.width / 2), // 垂直中点
+        horizontalMidpoint = this.bounds.y + (this.bounds.height / 2); //水平中点
 
     var startIsNorth = pRect.y < horizontalMidpoint,
         startIsWest = pRect.x < verticalMidpoint,
@@ -205,9 +198,7 @@ Quadtree.prototype.getIndex = function (pRect) {
 
 
 /**
- * Insert the object into the node. If the node
- * exceeds the capacity, it will split and add all
- * objects to their corresponding subnodes.
+ //将对象插入节点。如果节点超出容量，会拆分并全部相加对象到它们相应的子节点
  * @param Object pRect        bounds of the object to be added { x, y, width, height }
  */
 Quadtree.prototype.insert = function (pRect) {
@@ -215,7 +206,7 @@ Quadtree.prototype.insert = function (pRect) {
     var i = 0,
         indexes;
 
-    //if we have subnodes, call insert on matching subnodes
+    //如果有子节点，找到并对应插入
     if (this.nodes.length) {
         indexes = this.getIndex(pRect);
 
@@ -225,18 +216,18 @@ Quadtree.prototype.insert = function (pRect) {
         return;
     }
 
-    //otherwise, store object here
+    //没有对应子节点存到this.objects里
     this.objects.push(pRect);
 
-    //max_objects reached
+    //达到上限以后
     if (this.objects.length > this.max_objects && this.level < this.max_levels) {
 
-        //split if we don't already have subnodes
+        //如果还没有子节点则拆分
         if (!this.nodes.length) {
             this.split();
         }
 
-        //add all objects to their corresponding subnode
+        //将所有对象添加到其对应的子节点
         for (i = 0; i < this.objects.length; i++) {
             indexes = this.getIndex(this.objects[i]);
             for (var k = 0; k < indexes.length; k++) {
@@ -251,7 +242,7 @@ Quadtree.prototype.insert = function (pRect) {
 
 
 /**
- * Return all objects that could collide with the given object
+ * 返回可能与给定对象发生碰撞的所有对象
  * @param Object pRect      bounds of the object to be checked { x, y, width, height }
  * @Return Array            array with all detected objects
  */
@@ -260,14 +251,14 @@ Quadtree.prototype.retrieve = function (pRect) {
     var indexes = this.getIndex(pRect),
         returnObjects = this.objects;
 
-    //if we have subnodes, retrieve their objects
+    //如果我们有子节点，检索它们的对象
     if (this.nodes.length) {
         for (var i = 0; i < indexes.length; i++) {
             returnObjects = returnObjects.concat(this.nodes[indexes[i]].retrieve(pRect));
         }
     }
 
-    //remove duplicates
+    //移除重复的节点
     returnObjects = returnObjects.filter(function (item, index) {
         return returnObjects.indexOf(item) >= index;
     });
@@ -277,7 +268,7 @@ Quadtree.prototype.retrieve = function (pRect) {
 
 
 /**
- * Clear the quadtree
+ * 清理四叉树
  */
 Quadtree.prototype.clear = function () {
 

@@ -59,6 +59,12 @@ export class selectGameView extends UIManager{
             let commonBoard = cc.instantiate(res);
             ui_params.rootNode = commonBoard
             UIManager.showDefaultConfigUI(ui_params)
+        }else if (sender.node.index == 6) {
+            let ui_params = []
+            let res = await gFunc.loadResSync("package/prefab/ui/watermelon", Prefab)
+            let commonBoard = cc.instantiate(res);
+            ui_params.rootNode = commonBoard
+            UIManager.showDefaultConfigUI(ui_params)
         }else{
             gFunc.showToast("敬请期待")
         }

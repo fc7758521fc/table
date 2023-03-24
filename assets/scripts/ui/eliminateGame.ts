@@ -43,7 +43,6 @@ export class eliminateGame extends Component{
             }
         }
 
-        // this.randArray = [2, 3, 1, 4, 1, 2, 3, 2, 1, 2, 1, 3, 1, 2, 2, 2, 1, 1, 2, 4, 1, 1, 2, 3, 4, 2, 2, 4, 4, 4, 4, 2, 3, 1, 1, 2, 3, 3, 1, 3, 3, 2, 2, 1, 4, 1, 4, 2, 4, 2, 4, 4, 4, 3, 4, 1, 1, 2, 2, 2, 4, 1, 2, 3]
         this.randArray = [8, 12, 9, 7, 12, 12, 11, 7, 7, 12, 11, 11, 10, 10, 10, 7, 10, 12, 10, 12, 10, 10, 12, 8, 11, 9, 11, 9, 8, 11, 11, 11, 7, 8, 12, 9, 11, 7, 9, 9, 8, 10, 12, 12, 8, 11, 12, 7, 7, 8, 12, 11, 7, 12, 9, 10, 7, 10, 11, 12, 7, 7, 12, 11]
         console.log("this.eliminateArray", this.randArray)
     }
@@ -147,10 +146,10 @@ export class eliminateGame extends Component{
             let row = 0
             // let left_ramin = Math.floor(i / 8) //左边有几个
             let right_ramin = Math.floor((63 - i) / 8) //右边有几个
-            let top_ramin = 7 - i
-            let bottom_ramin = i
+            // let top_ramin = 7 - i
+            // let bottom_ramin = i
 
-            //判断四个方向有没有相同tag
+            //判断右边方向有没有相同tag
             // let left = i - 8
             let right = i + 8
             // let top = i + 1
@@ -183,12 +182,12 @@ export class eliminateGame extends Component{
                 let line = 0
                 let row = 0
                 let left_ramin = Math.floor(i / 8) //左边有几个
-                let right_ramin = Math.floor((63 - i) / 8) //右边有几个
+                // let right_ramin = Math.floor((63 - i) / 8) //右边有几个
                 let top_ramin = 8 * (left_ramin + 1) - 1 - i
     
-                //判断四个方向有没有相同tag
-                let left = i - 8
-                let right = i + 8
+                //判断上面方向有没有相同tag
+                // let left = i - 8
+                // let right = i + 8
                 let top = i + 1
     
                 let index_array = []
@@ -251,6 +250,7 @@ export class eliminateGame extends Component{
                 if (cube != null) {
                     if (direction == "line") { //横向消除
                         for (let j = 0; j < index_array_new.length; j++) {
+                            console.log("进来了多少次，进来了多少次")
                             if (cube.getPosition().x == index_array_new[j].posX && cube.getPosition().y > index_array_new[j].posY) { //已经放置的y坐标大于移动cube的不考虑
                                 var tween =  new Tween(cube)
                                 .to(0.1, { position: new Vec3(cube.getPosition().x , cube.getPosition().y - this.cellSize * offset_y, -1) })
@@ -262,7 +262,7 @@ export class eliminateGame extends Component{
                             }
                         }
                     }else{ //竖向消除
-                        if (cube.getPosition().x == maxPosX && cube.getPosition().y > maxPosY) { //已经放置的y坐标大于移动cube的不考虑
+                        if (cube.getPosition().x == maxPosX && cube.getPosition().y > maxPosY) { 
                             var tween =  new Tween(cube)
                             .to(0.1, { position: new Vec3(cube.getPosition().x , cube.getPosition().y - this.cellSize * offset_y, -1) })
                             .start();
@@ -528,10 +528,12 @@ export class eliminateGame extends Component{
 
 //实现回顾
 //1.根据当前框的宽高来得到行和列的数量
-//2.两次for循环生成随机块，并且打上相应的标记
-//3.检查横向是否存在可以消除的对象，从索引右边开始找，找到一行有3个以上相同的就消除，递归重复
-//4.横向消除逻辑，将消除对象上面的节点依次下移，同时进行数据交换，整理数据，标记为为空的便是需要填补的空位
-//5.检查竖向是否存在可以消除的对象，从索引上边开始找，找到一列有3个以上相同的就消除，递归重复
-//6.竖向消除逻辑，将被消除数组的第一位和上面存留的对象第一位交换，以此类推，整理数据，标记为为空的便是需要填补的空位
-//7.移动对象交换位置交换数据，然后进行数据检查，能消除进行消除，不能消除则再次交换位置，数据交换
+//2.随机出每个块的标记tag
+//3.生成每个cell的背景底框
+//4.双重for循环生成随机块，并且打上相应的标记
+//5.检查横向是否存在可以消除的对象，从索引右边开始找，找到一行有3个以上相同的就消除，递归重复
+//6.横向消除逻辑，将消除对象上面的节点依次下移，同时进行数据交换，整理数据，标记为为空的便是需要填补的空位
+//7.检查竖向是否存在可以消除的对象，从索引上边开始找，找到一列有3个以上相同的就消除，递归重复
+//8.竖向消除逻辑，将被消除数组的第一位和上面存留的对象第一位交换，以此类推，整理数据，标记为为空的便是需要填补的空位
+//9.移动对象交换位置交换数据，然后进行数据检查，能消除进行消除，不能消除则再次交换位置,数据交换
 
