@@ -5,11 +5,12 @@ const { ccclass, property } = _decorator;
 export class GlobalEnum {
     static GAME_TYPE_ENUM = { //游戏类型枚举
         SHOOT:0,
-        // JUMPBALL:1,
+        JUMPBALL:1,
         RUSSIACUBE:2,
         ELIMINATE:3,
-        // QUADTREE:4, 
-        // WATERMELON:5,
+        QUADTREE:4, 
+        WATERMELON:5,
+        ASTAR:6
     }
 
     static GAME_KEY_CODE = { //按钮枚举
