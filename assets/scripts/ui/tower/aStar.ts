@@ -1,11 +1,14 @@
 import { _decorator, Component, Node, Tween,Prefab, Label, input, Size,Input,Vec3,UITransform, Button, director,Sprite,EventTarget,SpriteFrame,SpriteAtlas, math, randomRangeInt, Vec2} from 'cc';
-import { UIManager } from '../UIManager';
-import { GlobalEnum } from '../global/GlobalEnum'
+import { UIManager } from '../../UIManager';
+import { GlobalEnum } from '../../global/GlobalEnum'
 const { ccclass, property } = _decorator;
-import { gFunc } from '../global/gFunc'
-import { EventMessage } from '../eventManager'
+import { gFunc } from '../../global/gFunc'
+import { EventMessage } from '../../eventManager'
 // import { russiaGameCubeTools } from './russiaGameCubeTools'
 // import { gameOver } from './gameOver'
+import { monsterFactory } from '../tower/monsterFactory'
+import { turretFactory } from '../tower/turretFactory'
+
 
 cc.myEvent = new EventTarget();
 
@@ -66,40 +69,96 @@ export class aStar extends Component{
                 if (this.isBarrier(i, j)) {
                     const barrierFrame = atlas.getSpriteFrame('public/public_item_box_6');
                     newNode.getComponent(Sprite).spriteFrame = barrierFrame
-                    newNode.getComponent(UITransform).priority = 10000
+                    newNode.getComponent(UITransform).priority = 100
+                }
+                
+                if (this.isEnded(i, j)) {
+                    const endedFrame = atlas.getSpriteFrame('public/public_item_box_4');
+                    newNode.getComponent(Sprite).spriteFrame = endedFrame
+                    newNode.getComponent(UITransform).priority = 100
                 }
 
                 this.cellArray.push(newNode)
             }
         }
+        
+        this.schedul = function () {
+            this.startAttack().then(val => {
+                console.log("+++++++++++++++++++++++++++++++++", val)
+                if (val) {
+                    val.setPosition(this.getNodePositon(0,0).x, this.getNodePositon(0,0).y)
+                    this.node.addChild(val)
 
-        let atlas = await gFunc.loadPlistSync("test_res/public.plist", SpriteAtlas) as SpriteAtlas; 
-        const roleFrame = atlas.getSpriteFrame('public/public_hero_star3');
+                    this.roleMove(val, 7, 0);
+                }
+            });
+        }
+        this.schedule(this.schedul, 2);
+    }
 
-        let role = new Node();
-        let sprite = role.addComponent(Sprite);
-        role.getComponent(Sprite).spriteFrame = roleFrame
-        console.log("this.getNodePositon(0,0)", this.getNodePositon(0,0))
-        role.setPosition(this.getNodePositon(0,0).x, this.getNodePositon(0,0).y)
-        this.node.addChild(role)
-        this.role = role
+    //终点合集
+    isEnded(x, y) {
+        let end = [
+            new Vec3(7,0),
+        ]
+        
+        for (let i = 0; i < end.length; i++) {
+            let endPos  = end[i]
+            if (endPos.x == x && endPos.y == y) {
+                return true
+            }
+        }
+    
+        return false
     }
 
     //障碍物合集
     isBarrier(x, y) {
         let barr = [
+            new Vec3(1,0),
+            new Vec3(1,1),
+            new Vec3(1,2),
+            new Vec3(1,3),
+            new Vec3(1,4),
+            new Vec3(1,5),
+            new Vec3(1,6),
+            new Vec3(1,7),
+            new Vec3(1,8),
+            new Vec3(1,9),
+
+            new Vec3(3,1),
+            new Vec3(3,2),
+            new Vec3(3,3),
+            new Vec3(3,4),
+            new Vec3(3,5),
+            new Vec3(3,6),
+            new Vec3(3,7),
+            new Vec3(3,8),
+            new Vec3(3,9),
+            new Vec3(3,10),
+
+            new Vec3(5,0),
             new Vec3(5,1),
             new Vec3(5,2),
             new Vec3(5,3),
             new Vec3(5,4),
             new Vec3(5,5),
-    
-            new Vec3(3,1),
-            new Vec3(3,2),
-            new Vec3(3,3),
-    
-            new Vec3(7,0),
+            new Vec3(5,6),
+            new Vec3(5,7),
+            new Vec3(5,8),
+            new Vec3(5,9),
+
             new Vec3(7,1),
+            new Vec3(7,2),
+            new Vec3(7,3),
+            new Vec3(7,4),
+            new Vec3(7,5),
+            new Vec3(7,6),
+            new Vec3(7,7),
+            new Vec3(7,8),
+            new Vec3(7,9),
+            new Vec3(7,10),
+
         ]
         
         for (let i = 0; i < barr.length; i++) {
@@ -143,22 +202,20 @@ export class aStar extends Component{
             }
         }
 
-        console.log("choose_cube", choose_x,choose_y, choose_cube)
-
         if (choose_cube) {
-            var tween =  new Tween(choose_cube)
-            .to(0.05, { scale: new Vec3(0.9, 0.9, 0.9) })
-            .to(0.05, { scale: new Vec3(1, 1, 1) })
-            .start();
-
-            this.chooseCube = choose_cube
-            
-            console.log("choose_cubechoose_cubechoose_cube", choose_cube)
-            this.roleMove(choose_cube.i, choose_cube.j)
+            if (this.isBarrier(choose_cube.i , choose_cube.j)) { //如果是障碍物则可以建立炮塔
+                let x = choose_cube.i
+                let y = choose_cube.j
+                this.createTurret(x , y).then(val => {
+                    val.setPosition(this.getNodePositon(x,y).x,this.getNodePositon(x,y).y)
+                    this.node.addChild(val)
+                    val.getComponent(UITransform).priority = 200
+                })
+            }
         }
     }
 
-    roleMove(x, y) {
+    roleMove(mobs, x, y) {
         let ismove = this.findPath(this.start_pos, new Vec2(x,y)) 
         if (ismove == false) {
             return
@@ -169,14 +226,14 @@ export class aStar extends Component{
         function move() {
             let pos = self.pathList[self.pathList.length - 1 - index]
 
-            var tween =  new Tween(self.role)
+            var tween =  new Tween(mobs)
             .to(0.5, { position: new Vec3(self.getNodePositon(pos.x,pos.y).x,self.getNodePositon(pos.x,pos.y).y, 0) })
             .call(() => {
                 index = index + 1
                 if (index < self.pathList.length) {
                     move()
                 }else{
-                    self.start_pos = new Vec2(x,y)
+                    // self.start_pos = new Vec2(x,y)
                 }
             })
             .start();
@@ -211,14 +268,12 @@ export class aStar extends Component{
         openList.push(this.startBlock)
 
         while(openList.length > 0 && this.endBlock == null) {
-            console.log("openListopenListopenList111", openList)
             let minFIndex = this.getMinFNode() 
             let centerNode = this.openList[minFIndex]
             this.openList.splice(minFIndex, 1)
             let cx = centerNode.coord.x
             let cy = centerNode.coord.y
             this.closeList['${cx}_${cy}'] = centerNode
-            console.log("openListopenListopenList222", openList)
 
             //遍历该节点周围的4个节点
             let neighbor = this.getPathOffset(centerNode.coord)
@@ -284,7 +339,6 @@ export class aStar extends Component{
         }
 
         return true
-        console.log("asdasdasdasdasdasd", this.startBlock)
     }
 
     //创建寻路数据块
@@ -386,4 +440,16 @@ export class aStar extends Component{
         return null
     }
 
+    //生成小怪
+    startAttack() {
+        let monster = monsterFactory.getMonsterType(1);
+        return monster
+    }
+
+    //生成炮塔
+    createTurret() {
+        let turret = turretFactory.getTurretType(1);
+        return turret
+
+    }
 }
