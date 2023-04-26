@@ -10,7 +10,8 @@ export class GlobalEnum {
         ELIMINATE:3,
         QUADTREE:4, 
         WATERMELON:5,
-        ASTAR:6
+        ASTAR:6,
+        NETTEST:7,
     }
 
     static GAME_KEY_CODE = { //按钮枚举

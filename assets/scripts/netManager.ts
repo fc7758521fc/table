@@ -1,6 +1,6 @@
 // import { CMD_CONFIG, CMD_NAME, EVENT_CONFIG } from "./protocolConfig";
 // import LOGIN from "../protocol/dr2_login";
-import { EventManager } from "./eventManager";
+// import { EventManager } from "./eventManager";
 
 export interface Request<T, M> {
     sid: number;
@@ -11,8 +11,8 @@ export interface Request<T, M> {
 }
 
 export class NetManager {
-    private HOST: string = 'ws://10.0.8.4';
-    private PORT: number = 9091;
+    private HOST: string = '127.0.0.1';
+    private PORT: number = 8000;
     private FIRST_LEN: number = 2;
     private HEADER_LEN: number = 4;
     private static instance: NetManager
@@ -34,8 +34,7 @@ export class NetManager {
     }
 
     connect(callback: () => void) {
-        console.log("TTTTTTTTTTTTTTTTTTTTTT")
-        let ws = new WebSocket(this.HOST + ":" + this.PORT);
+        let ws = new WebSocket('ws://127.0.0.1:8181/test');
         ws.binaryType = "arraybuffer"
         ws.onopen = (event) => {
             console.log("Connection open")
@@ -82,31 +81,32 @@ export class NetManager {
         }
     }
 
-    send<T, M>(req: Request<T, M>) {
+    send(data) {
         if (!this.connected()) {
             return
         }
 
-        let config = CMD_CONFIG[req.name]
-        if (!config) {
-            throw new Error(`protocol name error: ${req.name}`)
-        }
-        let content = config.req.encode(req.data).finish()
-        let len = this.HEADER_LEN + content.length;
+        // let config = CMD_CONFIG[req.name]
+        // if (!config) {
+        //     throw new Error(`protocol name error: ${req.name}`)
+        // }
+        // let content = config.req.encode(req.data).finish()
+        // let len = this.HEADER_LEN + content.length;
 
-        let buffer = new ArrayBuffer(this.FIRST_LEN + len)
-        let view = new DataView(buffer)
-        view.setUint16(0, len, this.littleEndian)
-        view.setUint8(2, config.group)
-        view.setUint8(3, config.type)
-        view.setUint16(4, req.sid, this.littleEndian)
-        for (let i = 0; i < content.length; i++) {
-            view.setUint8(6 + i, content[i])
-        }
+        // let buffer = new ArrayBuffer(this.FIRST_LEN + len)
+        // let view = new DataView(buffer)
+        // view.setUint16(0, len, this.littleEndian)
+        // view.setUint8(2, config.group)
+        // view.setUint8(3, config.type)
+        // view.setUint16(4, req.sid, this.littleEndian)
+        // for (let i = 0; i < content.length; i++) {
+        //     view.setUint8(6 + i, content[i])
+        // }
 
-        req.config = config
-        this.requests.push(req)
-        this.ws.send(buffer)
+        // req.config = config
+        // this.requests.push(req)
+        console.log("发送数据", data)
+        this.ws.send(data)
     }
 
     close() {
@@ -115,44 +115,47 @@ export class NetManager {
         }
     }
 
-    private onData(data: MessageEvent<ArrayBuffer>) {        
-        let view = new DataView(data.data)
-        let len = view.getUint16(0, this.littleEndian)
-        let group = view.getUint8(2)
-        let type = view.getUint8(3)
+    private onData(data: MessageEvent<ArrayBuffer>) {  
+        var data = JSON.parse(data.data)
+        console.log("收到数据", data)  
 
-        let buf = new Uint8Array(len - 2)
-        for (let i = 0; i < buf.length; i++) {
-            buf[i] = view.getUint8(4 + i)
-        }
+        // let view = new DataView(data.data)
+        // let len = view.getUint16(0, this.littleEndian)
+        // let group = view.getUint8(2)
+        // let type = view.getUint8(3)
 
-        let is_event = false
-        for (let key in EVENT_CONFIG) {
-            let config = EVENT_CONFIG[key]
-            if (config.group == group && config.type == type) {
-                let msg = config.rsp.decode(buf, len - 2)
-                EventManager.Instance.dispatchEvent(key, msg)
-                is_event = true
-                break
-            }
-        }
+        // let buf = new Uint8Array(len - 2)
+        // for (let i = 0; i < buf.length; i++) {
+        //     buf[i] = view.getUint8(4 + i)
+        // }
 
-        if (!is_event) {
-            for(let index = 0; index < this.requests.length; index++){
-                let request = this.requests[index]
-                let config = request.config
-                if (config.group == group && config.type == type) {
-                    let msg = config.rsp.decode(buf, len - 2)
-                    let callback = request.callback
-                    this.requests.splice(index, 1)
-                    console.log(`ws response data: ${JSON.stringify(msg)}`)
-                    if (callback) {
-                        callback(msg)
-                    }
-                    break
-                }
-            }
-        }
+        // let is_event = false
+        // for (let key in EVENT_CONFIG) {
+        //     let config = EVENT_CONFIG[key]
+        //     if (config.group == group && config.type == type) {
+        //         let msg = config.rsp.decode(buf, len - 2)
+        //         EventManager.Instance.dispatchEvent(key, msg)
+        //         is_event = true
+        //         break
+        //     }
+        // }
+
+        // if (!is_event) {
+        //     for(let index = 0; index < this.requests.length; index++){
+        //         let request = this.requests[index]
+        //         let config = request.config
+        //         if (config.group == group && config.type == type) {
+        //             let msg = config.rsp.decode(buf, len - 2)
+        //             let callback = request.callback
+        //             this.requests.splice(index, 1)
+        //             console.log(`ws response data: ${JSON.stringify(msg)}`)
+        //             if (callback) {
+        //                 callback(msg)
+        //             }
+        //             break
+        //         }
+        //     }
+        // }
     }
 
     onError(event: Event) {

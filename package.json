@@ -6,7 +6,7 @@
     "version": "3.6.1"
   },
   "dependencies": {
-    "protobufjs": "^7.1.2"
+    "protobufjs": "^7.2.3"
   },
   "scripts": {
     "build-proto": "npm run build-proto:pbjs && npm run build-proto:pbts",
