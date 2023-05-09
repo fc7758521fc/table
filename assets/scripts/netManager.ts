@@ -1,6 +1,6 @@
-// import { CMD_CONFIG, CMD_NAME, EVENT_CONFIG } from "./protocolConfig";
-// import LOGIN from "../protocol/dr2_login";
-// import { EventManager } from "./eventManager";
+import { CMD_CONFIG, CMD_NAME, EVENT_CONFIG } from "./protocolConfig";
+import  COMM  from "./protocol/dr2_comm.d.ts";
+import { EventManager } from "./eventManager";
 
 export interface Request<T, M> {
     sid: number;
@@ -63,15 +63,15 @@ export class NetManager {
     }
 
     startHeart(sid: number) {
-        this.heartId = setInterval(() => {
-            this.send<LOGIN.Ipbreq_echo, LOGIN.Ipbrsp_echo>({
-                sid: sid,
-                name: CMD_NAME.ECHO,
-                data: {
-                    echo: 12344321,
-                },
-            })
-        }, 60000)
+        // this.heartId = setInterval(() => {
+        //     this.send<LOGIN.Ipbreq_echo, LOGIN.Ipbrsp_echo>({
+        //         sid: sid,
+        //         name: CMD_NAME.ECHO,
+        //         data: {
+        //             echo: 12344321,
+        //         },
+        //     })
+        // }, 60000)
     }
 
     stopHeart() {
@@ -86,27 +86,27 @@ export class NetManager {
             return
         }
 
-        // let config = CMD_CONFIG[req.name]
-        // if (!config) {
-        //     throw new Error(`protocol name error: ${req.name}`)
-        // }
-        // let content = config.req.encode(req.data).finish()
-        // let len = this.HEADER_LEN + content.length;
+        let config = CMD_CONFIG["NET_CMD_TEST"]
+        if (!config) {
+            throw new Error(`protocol name error: ${COMM.pb_player}`)
+        }
+        let content = config.req.encode({name : "fc"}).finish()
+        let len = this.HEADER_LEN + content.length;
 
-        // let buffer = new ArrayBuffer(this.FIRST_LEN + len)
-        // let view = new DataView(buffer)
-        // view.setUint16(0, len, this.littleEndian)
-        // view.setUint8(2, config.group)
-        // view.setUint8(3, config.type)
-        // view.setUint16(4, req.sid, this.littleEndian)
-        // for (let i = 0; i < content.length; i++) {
-        //     view.setUint8(6 + i, content[i])
-        // }
+        let buffer = new ArrayBuffer(this.FIRST_LEN + len)
+        let view = new DataView(buffer)
+        view.setUint16(0, len, this.littleEndian)
+        view.setUint8(2, config.group)
+        view.setUint8(3, config.type)
+        view.setUint16(4, 1, this.littleEndian)
+        for (let i = 0; i < content.length; i++) {
+            view.setUint8(6 + i, content[i])
+        }
 
         // req.config = config
         // this.requests.push(req)
-        console.log("发送数据", data)
-        this.ws.send(data)
+        console.log("发送数据", buffer)
+        this.ws.send(buffer)
     }
 
     close() {
@@ -116,8 +116,8 @@ export class NetManager {
     }
 
     private onData(data: MessageEvent<ArrayBuffer>) {  
-        var data = JSON.parse(data.data)
-        console.log("收到数据", data)  
+        // var data = JSON.parse(data.data)
+        // console.log("收到数据", data)  
 
         // let view = new DataView(data.data)
         // let len = view.getUint16(0, this.littleEndian)

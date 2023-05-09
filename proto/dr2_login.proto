@@ -1,0 +1,169 @@
+//1.0 
+
+// prefix pb_ 公用结构体
+// pbreq_ :: 客户端请求包
+// pbrsp_ :: 服务端发送数据包
+
+// 请求包头： Len : 16(数值不包含Len两个字节)  Group: 8 Cmd: 8 Sid: 16 共6个字节
+// 返回包头:  Len : 16, group: 8, cmd: 8   共4个字节
+
+message pb_server
+{
+    required int32 id = 1; //分区号
+    required string ip = 2; //ip
+    required int32  port = 3; // 端口号
+    required string name = 4; // 名字
+    required int32 status  = 5; //状态 0:not full; 1:full; 2:new
+    required string language = 6; //语言
+    optional string nickname = 7; //昵称 当前区服的昵称，昵称在该区服上唯一
+}
+
+message pb_server_login  //dr2_comm.proto 定义为pb_server 这里也有定义被覆盖了 ，重新定义一个
+{
+    required int32  sid = 1;
+    required string sname = 2;      //server name
+    optional string pname = 3;      //player name
+    optional int32  plogo = 4;       //player name
+    optional int32  plv = 5;         //player lv
+    optional int32  flag = 6;        //1：新；2：维护中
+    optional int32  uid = 7;          //各个区服各个角色uid
+    optional int32 border = 8;   //头像框
+    optional int32 login_cd = 9;     // 现在距离上次登陆cd
+}
+
+// group : 1 cmd: 1  echo命令
+message pbreq_echo
+{
+	required int32 echo  = 1;
+}
+
+message pbrsp_echo
+{
+	required int32 echo  = 2;
+}
+
+// G : 1, C : 2
+message pbreq_pub
+{
+    required int32 language = 1;
+    required int32 vsn = 2;
+}
+
+message pbrsp_pub
+{
+    required sint32 status = 1;   //status = 1, 不返回公告内容，使用本地缓存
+    optional int32 language = 2;
+    optional int32 vsn = 3;
+    optional string pub = 4;
+}
+
+// group : 2, cmd : 1 用户注册  包体为空
+message pbreq_reg
+{
+//    optional int32 from = 3; // 1：积分墙用户
+	optional string rdid = 1; // ANDROID_ADVERTISING_IDENTIFIER or ADVERTISING_IDENTIFIER
+	optional string appversion  = 2; // MY_ANDROID_APP_VERSION
+	optional string osversion = 3; // ANDROID_OS_VERSION
+	optional string env = 4;	// 基础环境信息(json格式)
+}
+
+message pbrsp_reg
+{
+    required sint32 status = 1;
+    optional int32 uid = 2;
+    optional string account = 3;
+    optional string password = 4;
+}
+
+//group:2, cmd: 2 登陆过程中首先获取salt
+message pbreq_salt
+{
+    required string account = 1;
+}
+
+message pbrsp_salt
+{
+    required sint32 status  = 1;
+    optional string salt = 2;
+    optional int32 uid = 3; // 一定是主uid
+    optional uint32 flag = 4;   //账号状态(0正常状态, 1销毁倒计时 2已销毁)
+    optional uint32 cd = 5;     //账号销毁剩余秒数
+}
+
+//group:2, cmd:3,发送登陆校验和
+message pbreq_login
+{
+    required string checksum = 1;  //md5( salt + "rwmkxhgi6;578i650" + password)
+    optional string idfa = 2;
+    optional string keychain = 3;
+    optional string idfv = 4;
+	optional string env = 5;	// 基础环境信息(json格式)
+}
+
+message pbrsp_login
+{
+    required sint32 status = 1; // -1:帐号密码错误 -2:账号已被禁用
+    optional string session = 2;
+    optional int32 sid = 3; //最近登陆的分区号或者推荐新服
+    optional bool is_formal = 4; // 是否绑定过账户
+    optional int32 uid = 5; // 主uid或者子uid
+    optional string createTs = 6;  //账号创建时间
+}
+
+// g : 2 cmd : 4 //第三方登陆接入
+message pbreq_thirdlogin
+{
+	required string  platform = 1;  //"TX", "UC", "HW",
+	optional string  jsonStr = 2; //平台不同，参数不同，请备注
+}
+
+message pbrsp_thirdlogin
+{
+	required sint32 status = 1; // -1:帐号密码错误 -2:账号已被禁用
+	optional string session = 2;
+	optional int32 sid = 3; //最近登陆的分区号或者推荐新服
+	optional int32 uid  = 4;
+        optional string createTs = 5;  //角色创建时间
+        optional string ext = 6;  //json字符串,额外信息
+	optional int32 mid = 7; // 主uid
+}
+
+// g : 2, cmd : 5 //登录界面获取服务器列表
+message pbreq_servers_login
+{
+    optional int32 uid = 1;             // 玩家uid
+    optional string authcode = 2;             // gp_authcode
+}
+
+message pbrsp_servers_login
+{
+    repeated pb_server_login servers = 1;
+    optional int32 recent_sid = 2; // 最近登录区服
+    optional int32 status = 3; // 0: 正常；-1：uid有，authcode验证失败;-2：uid没有，authcode验证失败
+    repeated pb_server_login g_servers = 4;
+    optional int32 g_recent_sid = 5; // 最近登录区服
+    optional int32 uid = 6; // game uid
+    optional string account = 7;
+    optional string password = 8;
+    optional bool is_formal = 9; // 是否绑定过账户
+}
+
+// g : 2, cmd : 6 //pgs login
+message pbreq_pgs_login
+{
+    required string authcode = 1;
+    optional string idfa = 2;
+    optional string keychain = 3;
+    optional string idfv = 4;
+	optional string env = 5;	// 基础环境信息(json格式)
+}
+
+message pbrsp_pgs_login
+{
+    required sint32 status = 1; // -1:
+    optional string session = 2;
+    optional int32 sid = 3; //最近登陆的分区号或者推荐新服
+    optional bool is_formal = 4; // 是否绑定过账户
+    optional int32 uid = 5; // 主uid或者子uid
+    optional string createTs = 6;  //账号创建时间
+}

@@ -19,7 +19,6 @@ export class monsterFactory extends Component{
     public static getMonsterType(type) {
         if (type == 1) {
             let monster = mobs.create()
-            console.log("jjjjjjjjjjjjjjjjjjjjjjj",monster)
             return monster
         }
     }

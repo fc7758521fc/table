@@ -20,7 +20,6 @@ export class turretFactory extends Component{
     public static getTurretType(type) {
         if (type == 1) {
             let monster = turret.create()
-            console.log("jjjjjjjjjjjjjjjjjjjjjjj",monster)
             return monster
         }
     }

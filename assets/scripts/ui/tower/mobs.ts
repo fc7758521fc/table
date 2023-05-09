@@ -11,10 +11,14 @@ cc.myEvent = new EventTarget();
 
 @ccclass('mobs')
 export class mobs extends Component{
-     onLoad(){
+    onLoad(){
+
     }
 
     static async create() {
+        let maxLife = 5
+
+
         let atlas = await gFunc.loadPlistSync("test_res/public.plist", SpriteAtlas) as SpriteAtlas; 
         const roleFrame = atlas.getSpriteFrame('public/public_hero_star3');
         const progreeBg = atlas.getSpriteFrame('public/tavern_filter_back2');
@@ -28,8 +32,29 @@ export class mobs extends Component{
         let bar = cc.instantiate(res);
         bar.setPosition(new Vec3(role.getContentSize().width / 2 - 25, role.getContentSize().height / 2))
         role.addChild(bar);
+        bar.getComponent(ProgressBar).progress = 1
+
+        role.bar = bar
+        role.maxLife = maxLife
+
+        function reduceLife(role) {
+            if (role) {
+                role.maxLife = role.maxLife - 1
+                role.bar.getComponent(ProgressBar).progress = role.maxLife / 5
+            }
+        }
+        role.reduceLife = reduceLife
+
 
         return role
     }
+
+    // reduceLife(role, num) {
+    //     if (num) {
+    //         role.maxLife = role.maxLife - 1
+    //         role.bar.getComponent(ProgressBar).progress = (this.maxLife - role.maxLife) / 10
+    //     }
+    //     console.log("减少血量")
+    // }
 
 }

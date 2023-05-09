@@ -26,7 +26,7 @@ export class netTest extends Component{
         NetManager.getInstance().connect(() => {
             // NetManager.getInstance().send("hello")
             var message = {id: "2", name:"fc"}
-            NetManager.getInstance().send(JSON.stringify(message))
+            NetManager.getInstance().send(message)
 
             // NetManager.getInstance().startHeart(0)
         });
