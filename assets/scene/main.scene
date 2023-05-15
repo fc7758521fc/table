@@ -226,7 +226,7 @@
     "_shutter": 7,
     "_iso": 0,
     "_screenScale": 1,
-    "_visibility": 1822425087,
+    "_visibility": 1116733440,
     "_targetTexture": null,
     "_cameraType": -1,
     "_trackingType": 0,
@@ -1488,7 +1488,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 319.99999999999994,
-      "y": 479.99999999999994,
+      "y": 480.00000000000006,
       "z": 0
     },
     "_lrot": {
@@ -2377,8 +2377,8 @@
     "_target": null,
     "_left": -5.684341886080802e-14,
     "_right": -5.684341886080802e-14,
-    "_top": -5.684341886080802e-14,
-    "_bottom": -5.684341886080802e-14,
+    "_top": 5.684341886080802e-14,
+    "_bottom": 5.684341886080802e-14,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,

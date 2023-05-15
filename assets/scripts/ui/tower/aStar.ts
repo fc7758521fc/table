@@ -220,13 +220,33 @@ export class aStar extends Component{
             if (this.isBarrier(choose_cube.i , choose_cube.j)) { //如果是障碍物则可以建立炮塔
                 let x = choose_cube.i
                 let y = choose_cube.j
-                this.createTurret(x , y).then(val => {
-                    val.setPosition(this.getNodePositon(x,y).x,this.getNodePositon(x,y).y)
-                    this.node.addChild(val)
-                    val.getComponent(UITransform).priority = 200
+                // this.createTurret(x , y).then(val => {
+                //     val.setPosition(this.getNodePositon(x,y).x,this.getNodePositon(x,y).y)
+                //     this.node.addChild(val)
+                //     val.getComponent(UITransform).priority = 200
 
-                    this.turretArray.push(val)
+                //     this.turretArray.push(val)
+                // })
+                
+                let self = this
+                function call(type){
+                    console.log("+++++++++++,数据返回", type)
+                    self.createTurret(type).then(val => {
+                        val.setPosition(self.getNodePositon(x,y).x,self.getNodePositon(x,y).y)
+                        self.node.addChild(val)
+                        val.getComponent(UITransform).priority = 200
+                        
+                        self.turretArray.push(val)
+                    })
+                }
+
+                turretFactory.create(call).then(val => {
+                    val.setPosition(0, 0)
+                    this.node.addChild(val)
+                    val.getComponent(UITransform).priority = 100
                 })
+                
+
             }
         }
     }
@@ -251,8 +271,8 @@ export class aStar extends Component{
                 }else{
                     if (mobs) {
                         mobs.destroy()
-                        this.monsterArray.splice(mIndex, 1)
-                        console.log("this.monsterArraythis.monsterArray", this.monsterArray)
+                        self.monsterArray.splice(mIndex, 1)
+                        console.log("this.monsterArraythis.monsterArray", self.monsterArray)
                     }
                 }
             })
@@ -467,20 +487,19 @@ export class aStar extends Component{
     }
 
     //生成炮塔
-    createTurret() {
-        let turret = turretFactory.getTurretType(1);
+    createTurret(type) {
+        let turret = turretFactory.getTurretType(type);
         return turret
 
     }
 
-    lateUpdate() {
+    update() {
         for (let i = 0; i <this.turretArray.length ; i++) {
             let turret = this.turretArray[i]
             for (let j = 0; j < this.monsterArray.length ; j++) {
                 let monster = this.monsterArray[j]
                 if (monster && turret) {
                     let distace = Vec2.distance(turret.getPosition(), monster.getPosition())
-                    console.log("111111111111111111111111", 123)
                     if (distace <= 250) {
                         turret.getComponent(Sprite).color = Color.GREEN
                         if (turret.target == null) {
@@ -503,27 +522,43 @@ export class aStar extends Component{
         this.schedul = function () {
             for (let i = 0; i <this.turretArray.length ; i++) {
                 let turret = this.turretArray[i]
-                if (turret && turret.target) {
-                    console.log("+++++++++++++检测检测")
+                if (turret && turret.target != null) {
                     let bullet = cc.find("bullet", this.node)
                     let newNode = cc.instantiate(bullet)
                     newNode.setPosition(turret.getPosition().x, turret.getPosition().y)
                     newNode.active = true
                     this.node.addChild(newNode)
                     newNode.getComponent(UITransform).priority = 200
-
+                    
                     var tween =  new Tween(newNode)
                     .to(0.1, { position: new Vec3(turret.target.getPosition().x, turret.target.getPosition().y, 0) })
                     .call(() => {
+                        newNode.destroy()
+
                         let monster = turret.target
-                        let tag = monster.mTag
-                        monster.reduceLife(monster)
-                        if (monster.maxLife <= 0) {
-                            monster.destroy()
-                            this.monsterArray.splice(tag, 1)
-                            turret.target = null //设置标记
+                        if (monster == null ) {
+                            return
                         }
-                        newNode.destroy() 
+                        
+                        if (monster) {
+                            let tag = monster.mTag
+                            monster.reduceLife(monster)
+
+                            let self = this
+                            if (monster && monster.maxLife <= 0) {
+                                monster.destroy()
+                                for (let k = 0; k < self.turretArray.length ; k++) { //将不同塔上的共同目标移除
+                                    if (self.turretArray[k].target && self.turretArray[k].target.mTag != null ) {
+                                        if (self.turretArray[k].target.mTag === tag) {
+                                            self.turretArray[k].target = null 
+                                        }
+                                    }
+                                }
+                                turret.target = null //移除目标
+
+                                self.monsterArray.splice(tag, 1)
+                            }
+                        }
                     })
                     .start();
                 }
@@ -531,4 +566,5 @@ export class aStar extends Component{
         }
         this.schedule(this.schedul, 0.5);
     }
+    
 }

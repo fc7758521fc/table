@@ -12,7 +12,6 @@ cc.myEvent = new EventTarget();
 @ccclass('mobs')
 export class mobs extends Component{
     onLoad(){
-
     }
 
     static async create() {
@@ -44,7 +43,6 @@ export class mobs extends Component{
             }
         }
         role.reduceLife = reduceLife
-
 
         return role
     }
